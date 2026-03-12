@@ -42,12 +42,19 @@ npm install
 cp .env.example .env
 ```
 
-Edit `.env` with your values. At minimum you need `DATABASE_URL` and `AUTH_SECRET`.
+Generate an auth secret:
+
+```bash
+openssl rand -base64 32
+```
+
+Paste it as the `AUTH_SECRET` value in `.env`.
 
 | Variable | Required | Description |
 |---|---|---|
-| `DATABASE_URL` | Yes | PostgreSQL connection string |
-| `AUTH_SECRET` | Yes | Secret for Auth.js sessions (`openssl rand -base64 32`) |
+| `DATABASE_URL` | Yes | PostgreSQL TCP connection string (set in step 3) |
+| `MIGRATE_DATABASE_URL` | Only for Prisma local DB | HTTP URL for Prisma CLI migrations (set in step 3A) |
+| `AUTH_SECRET` | Yes | Secret for Auth.js sessions |
 | `AUTH_GOOGLE_ID` | No | Google OAuth client ID |
 | `AUTH_GOOGLE_SECRET` | No | Google OAuth client secret |
 | `UPLOADTHING_TOKEN` | No | UploadThing API token for photo uploads |
@@ -55,23 +62,51 @@ Edit `.env` with your values. At minimum you need `DATABASE_URL` and `AUTH_SECRE
 
 ### 3. Set Up the Database
 
-**Option A — Prisma's built-in local Postgres (no install needed):**
+#### Option A — Prisma's built-in local Postgres (no install needed)
+
+Open a **separate terminal** and run:
 
 ```bash
 npx prisma dev
 ```
 
-This starts a local Postgres and prints connection strings. Copy the **TCP** `DATABASE_URL` into your `.env`. Keep this terminal running.
-
-**Option B — Your own Postgres:**
-
-Set `DATABASE_URL` in `.env`, e.g.:
+It will print output like this:
 
 ```
-DATABASE_URL="postgres://user:password@localhost:5432/community_matcher"
+DATABASE_URL="prisma+postgres://localhost:XXXXX/?api_key=..."
+DATABASE_URL="postgres://postgres:postgres@localhost:YYYYY/template1?sslmode=disable..."
 ```
+
+Copy both URLs into your `.env`:
+
+```bash
+# The TCP one (postgres://...) goes here — used by the app
+DATABASE_URL="postgres://postgres:postgres@localhost:YYYYY/template1?sslmode=disable"
+
+# The HTTP one (prisma+postgres://...) goes here — used by migrations
+MIGRATE_DATABASE_URL="prisma+postgres://localhost:XXXXX/?api_key=..."
+```
+
+**Keep that terminal running** — it's your database.
+
+#### Option B — Your own Postgres (Homebrew, Docker, cloud, etc.)
+
+If you have Postgres installed, create a database and set `DATABASE_URL`:
+
+```bash
+# Example with local Postgres
+createdb community_matcher
+```
+
+```env
+DATABASE_URL="postgres://your_user:your_password@localhost:5432/community_matcher"
+```
+
+You can leave `MIGRATE_DATABASE_URL` blank — it falls back to `DATABASE_URL`.
 
 ### 4. Run Migrations & Generate Client
+
+Back in your **main terminal**:
 
 ```bash
 npx prisma generate
