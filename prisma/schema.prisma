@@ -1,0 +1,240 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── Auth.js Models ───
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ─── Core Models ───
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts Account[]
+  sessions Session[]
+  profile  Profile?
+
+  // Community Circle
+  ownedCircle  CommunityMember[] @relation("CircleOwner")
+  vettingFor   CommunityMember[] @relation("CircleVetter")
+
+  // Swipes & Matches
+  swipesMade     Swipe[] @relation("Swiper")
+  swipesReceived Swipe[] @relation("Swiped")
+  matchesAsUser1 Match[] @relation("MatchUser1")
+  matchesAsUser2 Match[] @relation("MatchUser2")
+
+  // Messages
+  conversationParticipants ConversationParticipant[]
+  messagesSent             Message[]
+}
+
+model Profile {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  displayName String
+  bio         String?  @db.Text
+  dateOfBirth DateTime
+  gender      String
+  location    String?
+  occupation  String?
+
+  // Dating Preferences
+  lookingFor       String?  // e.g. "men", "women", "everyone"
+  ageMin           Int      @default(18)
+  ageMax           Int      @default(99)
+  maxDistance       Int      @default(50)
+  relationshipGoal String?  // e.g. "casual", "serious", "marriage"
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  photos Photo[]
+}
+
+model Photo {
+  id        String  @id @default(cuid())
+  url       String
+  key       String
+  order     Int     @default(0)
+  isPrimary Boolean @default(false)
+
+  profileId String
+  profile   Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+}
+
+model CommunityMember {
+  id       String              @id @default(cuid())
+  ownerId  String
+  vetterId String
+  role     CommunityRole
+  status   CommunityMemberStatus @default(PENDING)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  owner  User @relation("CircleOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  vetter User @relation("CircleVetter", fields: [vetterId], references: [id], onDelete: Cascade)
+  votes  VettingVote[]
+
+  @@unique([ownerId, vetterId])
+}
+
+enum CommunityRole {
+  FRIEND
+  FAMILY
+  COLLEAGUE
+  MENTOR
+}
+
+enum CommunityMemberStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+}
+
+model VettingVote {
+  id                String @id @default(cuid())
+  communityMemberId String
+  matchId           String
+  vote              VoteType
+  comment           String? @db.Text
+
+  createdAt DateTime @default(now())
+
+  communityMember CommunityMember @relation(fields: [communityMemberId], references: [id], onDelete: Cascade)
+  match           Match           @relation(fields: [matchId], references: [id], onDelete: Cascade)
+
+  @@unique([communityMemberId, matchId])
+}
+
+enum VoteType {
+  APPROVE
+  DENY
+  NEUTRAL
+}
+
+model Swipe {
+  id       String    @id @default(cuid())
+  swiperId String
+  swipedId String
+  action   SwipeAction
+
+  createdAt DateTime @default(now())
+
+  swiper User @relation("Swiper", fields: [swiperId], references: [id], onDelete: Cascade)
+  swiped User @relation("Swiped", fields: [swipedId], references: [id], onDelete: Cascade)
+
+  @@unique([swiperId, swipedId])
+}
+
+enum SwipeAction {
+  ACCEPT
+  PASS
+}
+
+model Match {
+  id             String      @id @default(cuid())
+  user1Id        String
+  user2Id        String
+  status         MatchStatus @default(ACTIVE)
+  communityScore Float       @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user1        User          @relation("MatchUser1", fields: [user1Id], references: [id], onDelete: Cascade)
+  user2        User          @relation("MatchUser2", fields: [user2Id], references: [id], onDelete: Cascade)
+  conversation Conversation?
+  votes        VettingVote[]
+
+  @@unique([user1Id, user2Id])
+}
+
+enum MatchStatus {
+  ACTIVE
+  UNMATCHED
+}
+
+model Conversation {
+  id      String @id @default(cuid())
+  matchId String @unique
+
+  createdAt DateTime @default(now())
+
+  match        Match                    @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  participants ConversationParticipant[]
+  messages     Message[]
+}
+
+model ConversationParticipant {
+  id             String    @id @default(cuid())
+  conversationId String
+  userId         String
+  lastReadAt     DateTime?
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([conversationId, userId])
+}
+
+model Message {
+  id             String @id @default(cuid())
+  conversationId String
+  senderId       String
+  content        String @db.Text
+
+  createdAt DateTime @default(now())
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender       User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
+}
