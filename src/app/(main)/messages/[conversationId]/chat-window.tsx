@@ -38,21 +38,19 @@ function MessageBubble({
 }) {
   return (
     <div
-      className={`flex ${isSent ? "justify-end" : "justify-start"} mb-2`}
+      className={`flex ${isSent ? "justify-end" : "justify-start"} mb-3`}
     >
       <div
-        className={`max-w-[75%] rounded-2xl px-3.5 py-2 text-sm ${
+        className={`max-w-[75%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
           isSent
-            ? "bg-primary text-primary-foreground rounded-br-md"
-            : "bg-muted rounded-bl-md"
+            ? "gradient-primary text-white rounded-br-lg"
+            : "bg-muted/80 rounded-bl-lg"
         }`}
       >
         <p className="break-words">{message.content}</p>
         <p
-          className={`text-[0.6rem] mt-1 ${
-            isSent
-              ? "text-primary-foreground/70"
-              : "text-muted-foreground"
+          className={`text-[0.6rem] mt-1.5 ${
+            isSent ? "text-white/60" : "text-muted-foreground/70"
           }`}
         >
           {formatDistanceToNow(new Date(message.createdAt), {
@@ -90,7 +88,6 @@ export function ChatWindow({
       try {
         const result = await getMessages(conversationId);
         if (result.messages) {
-          // Messages come in desc order, reverse for display
           setMessages([...result.messages].reverse());
         }
         await markAsRead(conversationId);
@@ -162,36 +159,60 @@ export function ChatWindow({
   }, [conversationId]);
 
   return (
-    <div className="flex flex-col h-[calc(100vh-3.5rem)] md:h-[calc(100vh-3.5rem)] max-w-lg mx-auto">
+    <div className="flex flex-col h-[calc(100vh-4rem)] md:h-[calc(100vh-4rem)] max-w-lg mx-auto -mt-6">
       {/* Header */}
-      <div className="flex items-center gap-3 border-b px-2 py-3 shrink-0">
+      <div className="flex items-center gap-3 glass border-b border-border/30 px-3 py-3.5 shrink-0 rounded-b-xl">
         <Link href="/messages">
-          <Button variant="ghost" size="sm" className="size-8 p-0">
-            <ArrowLeft className="size-4" />
+          <Button
+            variant="ghost"
+            size="sm"
+            className="size-9 p-0 rounded-xl hover:bg-muted/50 transition-colors"
+          >
+            <ArrowLeft className="size-5" />
           </Button>
         </Link>
-        <Avatar size="sm">
+        <Avatar className="size-9 ring-2 ring-border/50">
           {otherUserAvatar && (
             <AvatarImage src={otherUserAvatar} alt={otherUserName} />
           )}
-          <AvatarFallback>{initials}</AvatarFallback>
+          <AvatarFallback className="text-xs font-medium">
+            {initials}
+          </AvatarFallback>
         </Avatar>
-        <h2 className="font-semibold text-sm">{otherUserName}</h2>
+        <div>
+          <h2 className="font-semibold text-sm leading-tight">
+            {otherUserName}
+          </h2>
+          <p className="text-[0.65rem] text-muted-foreground">Online</p>
+        </div>
       </div>
 
       {/* Messages area */}
       <div
         ref={scrollContainerRef}
-        className="flex-1 overflow-y-auto px-4 py-4"
+        className="flex-1 overflow-y-auto px-4 py-6"
       >
         {isLoading ? (
           <div className="flex items-center justify-center h-full">
-            <Loader2 className="size-6 animate-spin text-muted-foreground" />
+            <Loader2 className="size-6 animate-spin text-primary" />
           </div>
         ) : messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center">
-            <p className="text-muted-foreground text-sm">
-              No messages yet. Say hello!
+            <div className="rounded-2xl bg-gradient-to-br from-primary/10 to-primary/5 p-6 mb-4">
+              <Avatar className="size-16 ring-2 ring-primary/20 mx-auto">
+                {otherUserAvatar && (
+                  <AvatarImage src={otherUserAvatar} alt={otherUserName} />
+                )}
+                <AvatarFallback className="text-lg font-semibold">
+                  {initials}
+                </AvatarFallback>
+              </Avatar>
+            </div>
+            <p className="text-sm font-medium mb-1">
+              You matched with {otherUserName}
+            </p>
+            <p className="text-muted-foreground text-xs">
+              Send a message to start the conversation!
             </p>
           </div>
         ) : (
@@ -209,13 +230,13 @@ export function ChatWindow({
       {/* Message input */}
       <form
         onSubmit={handleSend}
-        className="flex items-center gap-2 border-t px-4 py-3 shrink-0"
+        className="flex items-center gap-3 border-t border-border/30 px-4 py-4 shrink-0 glass"
       >
         <Input
           value={messageInput}
           onChange={(e) => setMessageInput(e.target.value)}
           placeholder="Type a message..."
-          className="flex-1"
+          className="flex-1 h-11 rounded-xl bg-muted/30 border-border/50 focus:bg-background transition-colors duration-200"
           disabled={isSending}
           autoComplete="off"
         />
@@ -223,7 +244,7 @@ export function ChatWindow({
           type="submit"
           size="sm"
           disabled={isSending || !messageInput.trim()}
-          className="shrink-0"
+          className="shrink-0 size-11 rounded-xl gradient-primary border-0 shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 disabled:opacity-40"
         >
           {isSending ? (
             <Loader2 className="size-4 animate-spin" />

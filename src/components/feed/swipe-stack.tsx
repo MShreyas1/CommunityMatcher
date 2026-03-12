@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Heart, X } from "lucide-react";
+import { Heart, X, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { SwipeCard } from "./swipe-card";
@@ -38,7 +38,11 @@ export function SwipeStack({ profiles }: SwipeStackProps) {
       const result = await recordSwipe(currentProfile.userId, action);
 
       if (result.error) {
-        toast.error(typeof result.error === "string" ? result.error : "Something went wrong");
+        toast.error(
+          typeof result.error === "string"
+            ? result.error
+            : "Something went wrong"
+        );
         return;
       }
 
@@ -54,44 +58,50 @@ export function SwipeStack({ profiles }: SwipeStackProps) {
 
   if (!currentProfile) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-center">
-        <div className="rounded-full bg-muted p-6 mb-4">
-          <Heart className="size-10 text-muted-foreground" />
+      <div className="flex flex-col items-center justify-center py-24 text-center">
+        <div className="rounded-2xl bg-gradient-to-br from-primary/10 to-primary/5 p-8 mb-6">
+          <Sparkles className="size-12 text-primary" />
         </div>
-        <h2 className="text-xl font-semibold mb-2">No more profiles</h2>
-        <p className="text-muted-foreground max-w-xs">
-          Check back later for new people in your area.
+        <h2 className="text-xl font-semibold mb-2 tracking-tight">
+          You&apos;re all caught up
+        </h2>
+        <p className="text-muted-foreground max-w-xs text-sm leading-relaxed">
+          Check back later for new people in your communities.
         </p>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col items-center gap-6">
-      <SwipeCard profile={currentProfile} />
-      <div className="flex items-center gap-6">
+    <div className="flex flex-col items-center gap-8">
+      <div className="transition-all duration-300 ease-out">
+        <SwipeCard profile={currentProfile} />
+      </div>
+
+      <div className="flex items-center gap-8">
         <Button
           variant="outline"
           size="lg"
-          className="rounded-full size-14"
+          className="rounded-full size-16 border-2 border-destructive/30 hover:border-destructive hover:bg-destructive/10 transition-all duration-200 hover:scale-110 active:scale-95 card-shadow"
           onClick={() => handleSwipe("PASS")}
           disabled={isPending}
           aria-label="Pass"
         >
-          <X className="size-6 text-destructive" />
+          <X className="size-7 text-destructive" />
         </Button>
         <Button
           variant="outline"
           size="lg"
-          className="rounded-full size-14"
+          className="rounded-full size-16 border-2 border-green-500/30 hover:border-green-500 hover:bg-green-500/10 transition-all duration-200 hover:scale-110 active:scale-95 card-shadow"
           onClick={() => handleSwipe("ACCEPT")}
           disabled={isPending}
           aria-label="Like"
         >
-          <Heart className="size-6 text-green-500" />
+          <Heart className="size-7 text-green-500" />
         </Button>
       </div>
-      <p className="text-xs text-muted-foreground">
+
+      <p className="text-xs text-muted-foreground font-medium">
         {currentIndex + 1} of {profiles.length}
       </p>
     </div>

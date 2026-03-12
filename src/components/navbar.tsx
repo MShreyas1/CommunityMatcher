@@ -39,22 +39,33 @@ export function Navbar() {
   return (
     <>
       {/* Desktop top bar */}
-      <header className="hidden md:flex fixed top-0 left-0 right-0 z-50 h-14 items-center border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-6">
-        <Link href="/feed" className="mr-8 text-lg font-semibold tracking-tight">
-          CommunityMatcher
+      <header className="hidden md:flex fixed top-0 left-0 right-0 z-50 h-16 items-center glass border-b border-border/40 px-8">
+        <Link
+          href="/feed"
+          className="mr-10 flex items-center gap-2 text-lg font-bold tracking-tight"
+        >
+          <div className="flex size-8 items-center justify-center rounded-lg gradient-primary">
+            <Heart className="size-4 text-white" />
+          </div>
+          <span className="gradient-primary bg-clip-text text-transparent">
+            CommunityMatcher
+          </span>
         </Link>
 
         <nav className="flex items-center gap-1">
           {navLinks.map(({ href, label, icon: Icon }) => {
-            const isActive = pathname === href || pathname.startsWith(href + "/");
+            const isActive =
+              pathname === href || pathname.startsWith(href + "/");
             return (
               <Link key={href} href={href}>
                 <Button
-                  variant={isActive ? "secondary" : "ghost"}
+                  variant="ghost"
                   size="sm"
                   className={cn(
-                    "gap-1.5",
-                    isActive && "font-semibold"
+                    "gap-2 rounded-xl px-4 font-medium transition-all duration-200",
+                    isActive
+                      ? "bg-primary/10 text-primary font-semibold hover:bg-primary/15"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
                   )}
                 >
                   <Icon className="size-4" />
@@ -66,17 +77,23 @@ export function Navbar() {
         </nav>
 
         <div className="ml-auto flex items-center gap-3">
-          <Avatar size="sm">
+          <Avatar size="sm" className="ring-2 ring-border">
             {session?.user?.image && (
-              <AvatarImage src={session.user.image} alt={session.user.name ?? "User"} />
+              <AvatarImage
+                src={session.user.image}
+                alt={session.user.name ?? "User"}
+              />
             )}
-            <AvatarFallback>{userInitials}</AvatarFallback>
+            <AvatarFallback className="text-xs font-medium">
+              {userInitials}
+            </AvatarFallback>
           </Avatar>
           <Button
             variant="ghost"
             size="icon-sm"
             onClick={() => signOut({ callbackUrl: "/" })}
             aria-label="Sign out"
+            className="rounded-xl text-muted-foreground hover:text-foreground transition-colors"
           >
             <LogOut className="size-4" />
           </Button>
@@ -84,21 +101,29 @@ export function Navbar() {
       </header>
 
       {/* Mobile bottom tab bar */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 flex md:hidden h-16 items-center justify-around border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <nav className="fixed bottom-0 left-0 right-0 z-50 flex md:hidden h-[4.5rem] items-center justify-around glass border-t border-border/40 px-2 pb-safe">
         {navLinks.map(({ href, label, icon: Icon }) => {
-          const isActive = pathname === href || pathname.startsWith(href + "/");
+          const isActive =
+            pathname === href || pathname.startsWith(href + "/");
           return (
             <Link
               key={href}
               href={href}
               className={cn(
-                "flex flex-col items-center gap-0.5 px-2 py-1 text-[0.65rem] transition-colors",
+                "flex flex-col items-center gap-1 rounded-xl px-3 py-2 text-[0.65rem] font-medium transition-all duration-200",
                 isActive
-                  ? "text-primary font-semibold"
-                  : "text-muted-foreground hover:text-foreground"
+                  ? "text-primary"
+                  : "text-muted-foreground active:text-foreground"
               )}
             >
-              <Icon className={cn("size-5", isActive && "text-primary")} />
+              <div
+                className={cn(
+                  "flex items-center justify-center rounded-xl p-1.5 transition-all duration-200",
+                  isActive && "bg-primary/10"
+                )}
+              >
+                <Icon className="size-5" />
+              </div>
               {label}
             </Link>
           );

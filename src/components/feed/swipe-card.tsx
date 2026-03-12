@@ -1,7 +1,6 @@
 "use client";
 
 import Image from "next/image";
-import { Card, CardContent } from "@/components/ui/card";
 import { MapPin, Briefcase } from "lucide-react";
 import { CommunityScoreBadge } from "./community-score-badge";
 
@@ -36,10 +35,12 @@ function calculateAge(dateOfBirth: Date | string): number {
 
 export function SwipeCard({ profile }: SwipeCardProps) {
   const age = calculateAge(profile.dateOfBirth);
-  const primaryPhoto = profile.photos.find((p) => p.isPrimary) ?? profile.photos[0];
+  const primaryPhoto =
+    profile.photos.find((p) => p.isPrimary) ?? profile.photos[0];
 
   return (
-    <Card className="w-full max-w-sm mx-auto overflow-hidden">
+    <div className="w-full max-w-sm mx-auto rounded-3xl overflow-hidden card-shadow-lg bg-card border border-border/30">
+      {/* Photo area with gradient overlay */}
       <div className="relative aspect-[3/4] w-full bg-muted">
         {primaryPhoto ? (
           <Image
@@ -49,40 +50,48 @@ export function SwipeCard({ profile }: SwipeCardProps) {
             className="object-cover"
           />
         ) : (
-          <div className="flex items-center justify-center h-full text-muted-foreground">
+          <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
             No photo
           </div>
         )}
+        {/* Gradient overlay for text readability */}
+        <div className="absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
+
+        {/* Community score badge */}
         {profile.communityScore != null && (
-          <div className="absolute top-3 right-3">
+          <div className="absolute top-4 right-4">
             <CommunityScoreBadge score={profile.communityScore} />
           </div>
         )}
-      </div>
-      <CardContent className="space-y-2 pt-2">
-        <div className="flex items-center gap-2">
-          <h2 className="text-xl font-semibold">
+
+        {/* Name overlay on photo */}
+        <div className="absolute bottom-0 left-0 right-0 p-5 text-white">
+          <h2 className="text-2xl font-bold drop-shadow-md">
             {profile.displayName}, {age}
           </h2>
+          {profile.occupation && (
+            <div className="flex items-center gap-1.5 text-sm text-white/90 mt-1">
+              <Briefcase className="size-3.5" />
+              {profile.occupation}
+            </div>
+          )}
+          {profile.location && (
+            <div className="flex items-center gap-1.5 text-sm text-white/90 mt-0.5">
+              <MapPin className="size-3.5" />
+              {profile.location}
+            </div>
+          )}
         </div>
-        {profile.occupation && (
-          <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-            <Briefcase className="size-3.5" />
-            {profile.occupation}
-          </div>
-        )}
-        {profile.location && (
-          <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-            <MapPin className="size-3.5" />
-            {profile.location}
-          </div>
-        )}
-        {profile.bio && (
+      </div>
+
+      {/* Bio section */}
+      {profile.bio && (
+        <div className="p-5">
           <p className="text-sm text-muted-foreground leading-relaxed">
             {profile.bio}
           </p>
-        )}
-      </CardContent>
-    </Card>
+        </div>
+      )}
+    </div>
   );
 }

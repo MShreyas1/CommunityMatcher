@@ -200,6 +200,11 @@ export async function submitVote(
   return { success: true };
 }
 
+/**
+ * Get the vetting queue for the current user.
+ * Privacy: Does NOT include other vetters' votes — only returns matches
+ * that need the current user's vote.
+ */
 export async function getVettingQueue() {
   const session = await auth();
   if (!session?.user?.id) {
@@ -212,7 +217,16 @@ export async function getVettingQueue() {
       vetterId: session.user.id,
       status: "ACCEPTED",
     },
-    select: { id: true, ownerId: true },
+    select: {
+      id: true,
+      ownerId: true,
+      owner: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+    },
   });
 
   if (memberships.length === 0) {
@@ -221,6 +235,12 @@ export async function getVettingQueue() {
 
   const ownerIds = memberships.map((m: { ownerId: string }) => m.ownerId);
   const membershipIds = memberships.map((m: { id: string }) => m.id);
+
+  // Build a map of ownerId -> ownerName for display
+  const ownerNameMap: Record<string, string | null> = {};
+  for (const m of memberships) {
+    ownerNameMap[m.ownerId] = m.owner.name;
+  }
 
   // Find active matches involving the owners that the user hasn't voted on yet
   const matches = await prisma.match.findMany({
@@ -255,21 +275,38 @@ export async function getVettingQueue() {
           },
         },
       },
-      votes: true,
+      // Do NOT include votes — vetters should not see other vetters' votes
     },
     orderBy: { createdAt: "desc" },
   });
 
-  return { success: true, matches };
+  // Attach the owner name for each match so the vetter knows who they're vetting for
+  const matchesWithOwner = matches.map((match) => {
+    const vettingForId = ownerIds.find(
+      (id: string) => id === match.user1Id || id === match.user2Id
+    );
+    return {
+      ...match,
+      vettingForName: vettingForId ? ownerNameMap[vettingForId] : null,
+    };
+  });
+
+  return { success: true, matches: matchesWithOwner };
 }
 
+/**
+ * Get community members — separated into owner view vs vetter view.
+ *
+ * Owner view: Full member list (vetters they invited) with status.
+ * Vetter view: Only the owner's name they vet for. NO info about other vetters.
+ */
 export async function getCommunityMembers() {
   const session = await auth();
   if (!session?.user?.id) {
     return { error: "Not authenticated" };
   }
 
-  // Get members of the user's community circle (people they invited)
+  // Owner view: Get members of the user's community circle (people they invited)
   const members = await prisma.communityMember.findMany({
     where: { ownerId: session.user.id },
     include: {
@@ -285,15 +322,17 @@ export async function getCommunityMembers() {
     orderBy: { createdAt: "desc" },
   });
 
-  // Also get communities the user is a vetter in
+  // Vetter view: Only show the owner's name — no info about other vetters
   const vettingFor = await prisma.communityMember.findMany({
     where: { vetterId: session.user.id },
-    include: {
+    select: {
+      id: true,
+      role: true,
+      status: true,
       owner: {
         select: {
           id: true,
           name: true,
-          email: true,
           image: true,
         },
       },
@@ -302,4 +341,113 @@ export async function getCommunityMembers() {
   });
 
   return { success: true, members, vettingFor };
+}
+
+/**
+ * Get the current user's own votes. Vetters can only see their own past votes.
+ * Does NOT return other vetters' votes.
+ */
+export async function getMyVotes() {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return { error: "Not authenticated" };
+  }
+
+  // Get all memberships for this user
+  const memberships = await prisma.communityMember.findMany({
+    where: {
+      vetterId: session.user.id,
+      status: "ACCEPTED",
+    },
+    select: { id: true },
+  });
+
+  if (memberships.length === 0) {
+    return { success: true, votes: [] };
+  }
+
+  const membershipIds = memberships.map((m: { id: string }) => m.id);
+
+  // Only fetch this user's own votes
+  const votes = await prisma.vettingVote.findMany({
+    where: {
+      communityMemberId: { in: membershipIds },
+    },
+    include: {
+      match: {
+        include: {
+          user1: {
+            select: {
+              id: true,
+              name: true,
+              profile: {
+                select: { displayName: true },
+              },
+            },
+          },
+          user2: {
+            select: {
+              id: true,
+              name: true,
+              profile: {
+                select: { displayName: true },
+              },
+            },
+          },
+        },
+      },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+
+  return { success: true, votes };
+}
+
+/**
+ * Get all votes for a specific match. Only accessible to the circle owner
+ * (someone whose user ID is user1Id or user2Id on the match).
+ * Returns individual votes and the aggregated community score.
+ */
+export async function getMatchVotes(matchId: string) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return { error: "Not authenticated" };
+  }
+
+  const match = await prisma.match.findUnique({
+    where: { id: matchId },
+  });
+
+  if (!match) {
+    return { error: "Match not found" };
+  }
+
+  // Only the circle owner (a participant of the match) can see votes
+  if (match.user1Id !== session.user.id && match.user2Id !== session.user.id) {
+    return { error: "Not authorized to view votes for this match" };
+  }
+
+  const votes = await prisma.vettingVote.findMany({
+    where: { matchId },
+    include: {
+      communityMember: {
+        include: {
+          vetter: {
+            select: {
+              id: true,
+              name: true,
+              image: true,
+            },
+          },
+        },
+      },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+
+  return {
+    success: true,
+    votes,
+    communityScore: match.communityScore,
+  };
 }

@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getVettingQueue } from "@/actions/community";
-import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, ClipboardCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -54,7 +53,7 @@ export default async function VettingPage() {
           {matches.map(
             (match: {
               id: string;
-              communityScore: number | null;
+              vettingForName: string | null;
               user1: {
                 id: string;
                 name: string | null;
@@ -91,9 +90,12 @@ export default async function VettingPage() {
                   }[];
                 } | null;
               };
-              votes: { vote: string }[];
             }) => (
-              <VettingCard key={match.id} match={match} />
+              <VettingCard
+                key={match.id}
+                match={match}
+                vettingForName={match.vettingForName}
+              />
             )
           )}
         </div>

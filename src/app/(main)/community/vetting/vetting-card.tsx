@@ -35,7 +35,6 @@ interface UserProfile {
 
 interface MatchData {
   id: string;
-  communityScore: number | null;
   user1: {
     id: string;
     name: string | null;
@@ -46,11 +45,11 @@ interface MatchData {
     name: string | null;
     profile: UserProfile | null;
   };
-  votes: { vote: string }[];
 }
 
 interface VettingCardProps {
   match: MatchData;
+  vettingForName: string | null;
 }
 
 function calculateAge(dateOfBirth: Date | string): number {
@@ -121,7 +120,7 @@ function ProfileMini({ profile, name }: { profile: UserProfile | null; name: str
   );
 }
 
-export function VettingCard({ match }: VettingCardProps) {
+export function VettingCard({ match, vettingForName }: VettingCardProps) {
   const [comment, setComment] = useState("");
   const [hasVoted, setHasVoted] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -160,17 +159,14 @@ export function VettingCard({ match }: VettingCardProps) {
     );
   }
 
-  const approveCount = match.votes.filter((v) => v.vote === "APPROVE").length;
-  const totalVotes = match.votes.length;
-
   return (
     <Card>
       <CardHeader>
         <CardTitle className="text-base flex items-center justify-between">
           <span>Match Review</span>
-          {totalVotes > 0 && (
-            <Badge variant="secondary" className="text-xs">
-              {approveCount}/{totalVotes} approved
+          {vettingForName && (
+            <Badge variant="outline" className="text-xs font-normal">
+              Vetting for {vettingForName}
             </Badge>
           )}
         </CardTitle>

@@ -6,7 +6,6 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -69,7 +68,9 @@ export default function ProfileEditPage() {
               displayName: data.profile.displayName ?? "",
               bio: data.profile.bio ?? "",
               dateOfBirth: data.profile.dateOfBirth
-                ? new Date(data.profile.dateOfBirth).toISOString().split("T")[0]
+                ? new Date(data.profile.dateOfBirth)
+                    .toISOString()
+                    .split("T")[0]
                 : "",
               gender: data.profile.gender ?? "",
               location: data.profile.location ?? "",
@@ -121,216 +122,228 @@ export default function ProfileEditPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-20">
-        <Loader2 className="size-6 animate-spin text-muted-foreground" />
+      <div className="flex items-center justify-center py-24">
+        <Loader2 className="size-6 animate-spin text-primary" />
       </div>
     );
   }
 
+  const inputClassName =
+    "h-11 rounded-xl bg-muted/30 border-border/50 focus:bg-background transition-colors duration-200";
+  const selectClassName =
+    "flex h-11 w-full rounded-xl border border-border/50 bg-muted/30 px-3 py-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/20 transition-colors duration-200";
+
   return (
-    <div className="mx-auto max-w-lg py-6 space-y-6">
-      <h1 className="text-2xl font-bold">
+    <div className="mx-auto max-w-lg py-8 space-y-8">
+      <h1 className="text-3xl font-bold tracking-tight">
         {isEditing ? "Edit Profile" : "Create Profile"}
       </h1>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Basic Info</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-1.5">
-              <label htmlFor="displayName" className="text-sm font-medium">
-                Display Name *
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+        {/* Basic Info */}
+        <div className="rounded-2xl border border-border/30 bg-card p-6 card-shadow space-y-5">
+          <h2 className="text-lg font-semibold tracking-tight">Basic Info</h2>
+
+          <div className="space-y-2">
+            <label htmlFor="displayName" className="text-sm font-medium">
+              Display Name <span className="text-primary">*</span>
+            </label>
+            <Input
+              id="displayName"
+              placeholder="Your display name"
+              className={inputClassName}
+              {...register("displayName")}
+              aria-invalid={!!errors.displayName}
+            />
+            {errors.displayName && (
+              <p className="text-xs text-destructive">
+                {errors.displayName.message}
+              </p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <label htmlFor="bio" className="text-sm font-medium">
+              Bio
+            </label>
+            <Textarea
+              id="bio"
+              placeholder="Tell people about yourself..."
+              className="rounded-xl bg-muted/30 border-border/50 focus:bg-background transition-colors duration-200 min-h-[100px]"
+              {...register("bio")}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label htmlFor="dateOfBirth" className="text-sm font-medium">
+              Date of Birth <span className="text-primary">*</span>
+            </label>
+            <Input
+              id="dateOfBirth"
+              type="date"
+              className={inputClassName}
+              {...register("dateOfBirth")}
+              aria-invalid={!!errors.dateOfBirth}
+            />
+            {errors.dateOfBirth && (
+              <p className="text-xs text-destructive">
+                {errors.dateOfBirth.message}
+              </p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <label htmlFor="gender" className="text-sm font-medium">
+              Gender <span className="text-primary">*</span>
+            </label>
+            <select
+              id="gender"
+              {...register("gender")}
+              className={selectClassName}
+              aria-invalid={!!errors.gender}
+            >
+              <option value="">Select gender</option>
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+              <option value="non-binary">Non-binary</option>
+              <option value="other">Other</option>
+            </select>
+            {errors.gender && (
+              <p className="text-xs text-destructive">
+                {errors.gender.message}
+              </p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <label htmlFor="location" className="text-sm font-medium">
+              Location
+            </label>
+            <Input
+              id="location"
+              placeholder="City, State"
+              className={inputClassName}
+              {...register("location")}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label htmlFor="occupation" className="text-sm font-medium">
+              Occupation
+            </label>
+            <Input
+              id="occupation"
+              placeholder="What do you do?"
+              className={inputClassName}
+              {...register("occupation")}
+            />
+          </div>
+        </div>
+
+        {/* Preferences */}
+        <div className="rounded-2xl border border-border/30 bg-card p-6 card-shadow space-y-5">
+          <h2 className="text-lg font-semibold tracking-tight">Preferences</h2>
+
+          <div className="space-y-2">
+            <label htmlFor="lookingFor" className="text-sm font-medium">
+              Looking For
+            </label>
+            <select
+              id="lookingFor"
+              {...register("lookingFor")}
+              className={selectClassName}
+            >
+              <option value="">No preference</option>
+              <option value="men">Men</option>
+              <option value="women">Women</option>
+              <option value="everyone">Everyone</option>
+            </select>
+          </div>
+
+          <div className="space-y-2">
+            <label htmlFor="relationshipGoal" className="text-sm font-medium">
+              Relationship Goal
+            </label>
+            <select
+              id="relationshipGoal"
+              {...register("relationshipGoal")}
+              className={selectClassName}
+            >
+              <option value="">Select a goal</option>
+              <option value="long-term">Long-term relationship</option>
+              <option value="short-term">Short-term dating</option>
+              <option value="casual">Casual</option>
+              <option value="friendship">Friendship</option>
+              <option value="unsure">Not sure yet</option>
+            </select>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label htmlFor="ageMin" className="text-sm font-medium">
+                Min Age
               </label>
               <Input
-                id="displayName"
-                placeholder="Your display name"
-                {...register("displayName")}
-                aria-invalid={!!errors.displayName}
-              />
-              {errors.displayName && (
-                <p className="text-xs text-destructive">
-                  {errors.displayName.message}
-                </p>
-              )}
-            </div>
-
-            <div className="space-y-1.5">
-              <label htmlFor="bio" className="text-sm font-medium">
-                Bio
-              </label>
-              <Textarea
-                id="bio"
-                placeholder="Tell people about yourself..."
-                {...register("bio")}
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <label htmlFor="dateOfBirth" className="text-sm font-medium">
-                Date of Birth *
-              </label>
-              <Input
-                id="dateOfBirth"
-                type="date"
-                {...register("dateOfBirth")}
-                aria-invalid={!!errors.dateOfBirth}
-              />
-              {errors.dateOfBirth && (
-                <p className="text-xs text-destructive">
-                  {errors.dateOfBirth.message}
-                </p>
-              )}
-            </div>
-
-            <div className="space-y-1.5">
-              <label htmlFor="gender" className="text-sm font-medium">
-                Gender *
-              </label>
-              <select
-                id="gender"
-                {...register("gender")}
-                className="flex h-8 w-full rounded-lg border border-input bg-transparent px-2.5 py-1 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
-                aria-invalid={!!errors.gender}
-              >
-                <option value="">Select gender</option>
-                <option value="male">Male</option>
-                <option value="female">Female</option>
-                <option value="non-binary">Non-binary</option>
-                <option value="other">Other</option>
-              </select>
-              {errors.gender && (
-                <p className="text-xs text-destructive">
-                  {errors.gender.message}
-                </p>
-              )}
-            </div>
-
-            <div className="space-y-1.5">
-              <label htmlFor="location" className="text-sm font-medium">
-                Location
-              </label>
-              <Input
-                id="location"
-                placeholder="City, State"
-                {...register("location")}
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <label htmlFor="occupation" className="text-sm font-medium">
-                Occupation
-              </label>
-              <Input
-                id="occupation"
-                placeholder="What do you do?"
-                {...register("occupation")}
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Preferences</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-1.5">
-              <label htmlFor="lookingFor" className="text-sm font-medium">
-                Looking For
-              </label>
-              <select
-                id="lookingFor"
-                {...register("lookingFor")}
-                className="flex h-8 w-full rounded-lg border border-input bg-transparent px-2.5 py-1 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
-              >
-                <option value="">No preference</option>
-                <option value="men">Men</option>
-                <option value="women">Women</option>
-                <option value="everyone">Everyone</option>
-              </select>
-            </div>
-
-            <div className="space-y-1.5">
-              <label htmlFor="relationshipGoal" className="text-sm font-medium">
-                Relationship Goal
-              </label>
-              <select
-                id="relationshipGoal"
-                {...register("relationshipGoal")}
-                className="flex h-8 w-full rounded-lg border border-input bg-transparent px-2.5 py-1 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
-              >
-                <option value="">Select a goal</option>
-                <option value="long-term">Long-term relationship</option>
-                <option value="short-term">Short-term dating</option>
-                <option value="casual">Casual</option>
-                <option value="friendship">Friendship</option>
-                <option value="unsure">Not sure yet</option>
-              </select>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <label htmlFor="ageMin" className="text-sm font-medium">
-                  Min Age
-                </label>
-                <Input
-                  id="ageMin"
-                  type="number"
-                  min={18}
-                  max={99}
-                  {...register("ageMin")}
-                />
-              </div>
-              <div className="space-y-1.5">
-                <label htmlFor="ageMax" className="text-sm font-medium">
-                  Max Age
-                </label>
-                <Input
-                  id="ageMax"
-                  type="number"
-                  min={18}
-                  max={99}
-                  {...register("ageMax")}
-                />
-              </div>
-            </div>
-
-            <div className="space-y-1.5">
-              <label htmlFor="maxDistance" className="text-sm font-medium">
-                Max Distance (miles)
-              </label>
-              <Input
-                id="maxDistance"
+                id="ageMin"
                 type="number"
-                min={1}
-                {...register("maxDistance")}
+                min={18}
+                max={99}
+                className={inputClassName}
+                {...register("ageMin")}
               />
             </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Photos</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-center rounded-lg border-2 border-dashed border-muted-foreground/25 p-8">
-              <div className="text-center">
-                <ImagePlus className="mx-auto size-8 text-muted-foreground mb-2" />
-                <p className="text-sm text-muted-foreground">
-                  Photo upload coming soon
-                </p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  UploadThing integration requires API keys
-                </p>
-              </div>
+            <div className="space-y-2">
+              <label htmlFor="ageMax" className="text-sm font-medium">
+                Max Age
+              </label>
+              <Input
+                id="ageMax"
+                type="number"
+                min={18}
+                max={99}
+                className={inputClassName}
+                {...register("ageMax")}
+              />
             </div>
-          </CardContent>
-        </Card>
+          </div>
 
-        <Button type="submit" className="w-full" disabled={isPending}>
+          <div className="space-y-2">
+            <label htmlFor="maxDistance" className="text-sm font-medium">
+              Max Distance (miles)
+            </label>
+            <Input
+              id="maxDistance"
+              type="number"
+              min={1}
+              className={inputClassName}
+              {...register("maxDistance")}
+            />
+          </div>
+        </div>
+
+        {/* Photos */}
+        <div className="rounded-2xl border border-border/30 bg-card p-6 card-shadow space-y-4">
+          <h2 className="text-lg font-semibold tracking-tight">Photos</h2>
+          <div className="flex items-center justify-center rounded-2xl border-2 border-dashed border-border/50 p-10 bg-muted/20 transition-colors duration-200 hover:bg-muted/30">
+            <div className="text-center">
+              <div className="mx-auto flex size-12 items-center justify-center rounded-xl bg-primary/10 mb-3">
+                <ImagePlus className="size-6 text-primary" />
+              </div>
+              <p className="text-sm font-medium text-muted-foreground">
+                Photo upload coming soon
+              </p>
+              <p className="text-xs text-muted-foreground/70 mt-1">
+                UploadThing integration requires API keys
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <Button
+          type="submit"
+          className="w-full h-12 rounded-xl gradient-primary border-0 font-semibold text-base shadow-md hover:shadow-lg transition-all duration-300 hover:scale-[1.01]"
+          disabled={isPending}
+        >
           {isPending ? (
             <>
               <Loader2 className="size-4 animate-spin mr-2" />

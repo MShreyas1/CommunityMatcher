@@ -8,9 +8,10 @@ export default function MainLayout({
   return (
     <>
       <Navbar />
-      {/* offset for fixed navbar: top bar on desktop, bottom bar on mobile */}
-      <main className="min-h-screen pt-14 pb-0 md:pb-0 pb-16 md:pt-14 px-4 md:px-8">
-        {children}
+      <main className="min-h-screen pt-16 pb-20 md:pb-6 md:pt-16 px-4 md:px-8">
+        <div className="mx-auto max-w-5xl">
+          {children}
+        </div>
       </main>
     </>
   );

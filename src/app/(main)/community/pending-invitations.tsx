@@ -15,7 +15,6 @@ interface Invitation {
   owner: {
     id: string;
     name: string | null;
-    email: string | null;
     image: string | null;
   };
 }
@@ -68,7 +67,7 @@ function InvitationCard({ invitation }: { invitation: Invitation }) {
       </Avatar>
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium truncate">
-          {invitation.owner.name ?? invitation.owner.email}
+          {invitation.owner.name ?? "Someone"}
         </p>
         <p className="text-xs text-muted-foreground">
           Wants you as: {invitation.role}

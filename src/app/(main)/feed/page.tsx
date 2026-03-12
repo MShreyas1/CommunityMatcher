@@ -13,9 +13,11 @@ export default async function FeedPage() {
       redirect("/profile/edit");
     }
     return (
-      <div className="flex items-center justify-center py-20">
-        <p className="text-muted-foreground">
-          {typeof result.error === "string" ? result.error : "Something went wrong"}
+      <div className="flex items-center justify-center py-24">
+        <p className="text-muted-foreground text-sm">
+          {typeof result.error === "string"
+            ? result.error
+            : "Something went wrong"}
         </p>
       </div>
     );
@@ -24,8 +26,10 @@ export default async function FeedPage() {
   const profiles = result.profiles ?? [];
 
   return (
-    <div className="mx-auto max-w-lg py-6">
-      <h1 className="text-2xl font-bold text-center mb-6">Discover</h1>
+    <div className="mx-auto max-w-md py-8">
+      <h1 className="text-3xl font-bold text-center mb-8 tracking-tight">
+        Discover
+      </h1>
       <SwipeStack profiles={profiles} />
     </div>
   );

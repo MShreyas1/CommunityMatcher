@@ -4,7 +4,7 @@ import { getCommunityMembers } from "@/actions/community";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Users, ClipboardCheck } from "lucide-react";
+import { Users, ClipboardCheck, Eye } from "lucide-react";
 import { InviteForm } from "./invite-form";
 import { PendingInvitations } from "./pending-invitations";
 
@@ -27,31 +27,32 @@ export default async function CommunityPage() {
   const members = result.members ?? [];
   const vettingFor = result.vettingFor ?? [];
 
+  const isOwner = members.length > 0 || true; // Always show owner section so they can invite
+  const isVetter = vettingFor.length > 0;
+
   const pendingInvitations = vettingFor.filter(
     (v: { status: string }) => v.status === "PENDING"
+  );
+  const acceptedVettingFor = vettingFor.filter(
+    (v: { status: string }) => v.status === "ACCEPTED"
   );
 
   return (
     <div className="mx-auto max-w-2xl py-6 space-y-6">
+      {/* ============ OWNER SECTION ============ */}
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Your Community Circle</h1>
-        <Link href="/community/vetting">
-          <Badge variant="secondary" className="gap-1 cursor-pointer">
-            <ClipboardCheck className="size-3" />
-            Vetting Queue
-          </Badge>
-        </Link>
       </div>
 
-      {/* Invite Form */}
+      {/* Invite Form — only for owners */}
       <InviteForm />
 
-      {/* Pending invitations received */}
+      {/* Pending invitations the user received as a vetter */}
       {pendingInvitations.length > 0 && (
         <PendingInvitations invitations={pendingInvitations} />
       )}
 
-      {/* Community Members */}
+      {/* Owner view: Full member list */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -128,69 +129,65 @@ export default async function CommunityPage() {
         </CardContent>
       </Card>
 
-      {/* Communities you vet for */}
-      {vettingFor.length > 0 && (
+      {/* ============ VETTER SECTION ============ */}
+      {/* Vetters only see who they're vetting for and a link to the queue */}
+      {isVetter && acceptedVettingFor.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Communities You Vet For</CardTitle>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Eye className="size-5" />
+              Vetting Assignments
+            </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="divide-y">
-              {vettingFor.map(
-                (membership: {
+          <CardContent className="space-y-3">
+            {acceptedVettingFor.map(
+              (membership: {
+                id: string;
+                role: string;
+                status: string;
+                owner: {
                   id: string;
-                  role: string;
-                  status: string;
-                  owner: {
-                    id: string;
-                    name: string | null;
-                    email: string | null;
-                    image: string | null;
-                  };
-                }) => {
-                  const initials = (membership.owner.name ?? "?")
-                    .split(" ")
-                    .map((n: string) => n[0])
-                    .join("")
-                    .toUpperCase()
-                    .slice(0, 2);
+                  name: string | null;
+                  image: string | null;
+                };
+              }) => {
+                const initials = (membership.owner.name ?? "?")
+                  .split(" ")
+                  .map((n: string) => n[0])
+                  .join("")
+                  .toUpperCase()
+                  .slice(0, 2);
 
-                  return (
-                    <div
-                      key={membership.id}
-                      className="flex items-center gap-3 py-3"
-                    >
-                      <Avatar>
-                        {membership.owner.image && (
-                          <AvatarImage
-                            src={membership.owner.image}
-                            alt={membership.owner.name ?? "User"}
-                          />
-                        )}
-                        <AvatarFallback>{initials}</AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">
-                          {membership.owner.name ?? membership.owner.email}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          Role: {membership.role}
-                        </p>
-                      </div>
-                      <Badge
-                        variant={
-                          membership.status === "ACCEPTED"
-                            ? "default"
-                            : "secondary"
-                        }
-                      >
-                        {membership.status.toLowerCase()}
-                      </Badge>
-                    </div>
-                  );
-                }
-              )}
-            </div>
+                return (
+                  <div
+                    key={membership.id}
+                    className="flex items-center gap-3 py-2"
+                  >
+                    <Avatar className="size-8">
+                      {membership.owner.image && (
+                        <AvatarImage
+                          src={membership.owner.image}
+                          alt={membership.owner.name ?? "User"}
+                        />
+                      )}
+                      <AvatarFallback className="text-xs">{initials}</AvatarFallback>
+                    </Avatar>
+                    <p className="text-sm flex-1">
+                      You&apos;re vetting for{" "}
+                      <span className="font-semibold">
+                        {membership.owner.name ?? "someone"}
+                      </span>
+                    </p>
+                  </div>
+                );
+              }
+            )}
+            <Link href="/community/vetting">
+              <Badge variant="secondary" className="gap-1 cursor-pointer mt-2">
+                <ClipboardCheck className="size-3" />
+                Go to Vetting Queue
+              </Badge>
+            </Link>
           </CardContent>
         </Card>
       )}
