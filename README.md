@@ -1,36 +1,151 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# CommunityMatcher
+
+A community-based dating app where friends, family, and trusted people vet and approve potential matches. Your "Community Circle" reviews matches and provides an approval score visible on each profile.
+
+## Tech Stack
+
+- **Framework**: Next.js 15 (App Router, Turbopack)
+- **Database**: PostgreSQL + Prisma ORM
+- **Auth**: Auth.js (NextAuth v5) — Google OAuth + email/password
+- **Styling**: Tailwind CSS + shadcn/ui
+- **Real-time**: Socket.io for messaging
+- **Uploads**: UploadThing (photo uploads)
+- **Validation**: Zod + React Hook Form
+
+## Features
+
+- **Swipe Feed** — Browse and accept/pass on candidate profiles
+- **Community Circle** — Invite trusted friends/family to vet your matches
+- **Vetting Dashboard** — Vetters approve/deny/comment on matches with a community score
+- **Matching** — Mutual swipes create a match with a conversation
+- **Real-time Messaging** — Chat with matches via Socket.io
+- **Profile Management** — Bio, photos, dating preferences, location
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- Node.js 18+
+- PostgreSQL (or use Prisma's built-in local Postgres)
+
+### 1. Clone & Install
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/MShreyas1/CommunityMatcher.git
+cd CommunityMatcher
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Environment Variables
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+cp .env.example .env
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Edit `.env` with your values. At minimum you need `DATABASE_URL` and `AUTH_SECRET`.
 
-## Learn More
+| Variable | Required | Description |
+|---|---|---|
+| `DATABASE_URL` | Yes | PostgreSQL connection string |
+| `AUTH_SECRET` | Yes | Secret for Auth.js sessions (`openssl rand -base64 32`) |
+| `AUTH_GOOGLE_ID` | No | Google OAuth client ID |
+| `AUTH_GOOGLE_SECRET` | No | Google OAuth client secret |
+| `UPLOADTHING_TOKEN` | No | UploadThing API token for photo uploads |
+| `NEXT_PUBLIC_APP_URL` | No | App URL (defaults to `http://localhost:3000`) |
 
-To learn more about Next.js, take a look at the following resources:
+### 3. Set Up the Database
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+**Option A — Prisma's built-in local Postgres (no install needed):**
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+npx prisma dev
+```
 
-## Deploy on Vercel
+This starts a local Postgres and prints connection strings. Copy the **TCP** `DATABASE_URL` into your `.env`. Keep this terminal running.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+**Option B — Your own Postgres:**
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Set `DATABASE_URL` in `.env`, e.g.:
+
+```
+DATABASE_URL="postgres://user:password@localhost:5432/community_matcher"
+```
+
+### 4. Run Migrations & Generate Client
+
+```bash
+npx prisma generate
+npx prisma migrate dev --name init
+```
+
+### 5. Seed Test Data (Optional)
+
+```bash
+npm run seed
+```
+
+Creates 6 test accounts (all passwords: `password123`):
+
+| Email | Description |
+|---|---|
+| `alice@example.com` | Main user — has matches, messages, community circle |
+| `bob@example.com` | Vetter in Alice's circle |
+| `carol@example.com` | Vetter in Alice's circle |
+| `dave@example.com` | Matched with Alice, has his own community circle |
+| `emma@example.com` | Pending community invite from Dave |
+| `frank@example.com` | Matched with Alice, vetter for Dave |
+
+### 6. Start the App
+
+```bash
+npm run dev          # Socket.io + Next.js (real-time messaging)
+# or
+npm run dev:next     # Next.js only (no real-time)
+```
+
+Open [http://localhost:3000](http://localhost:3000).
+
+## Project Structure
+
+```
+src/
+├── actions/          # Server actions (auth, feed, community, match, message, profile)
+├── app/
+│   ├── (auth)/       # Login & register pages (centered card layout)
+│   ├── (main)/       # Authenticated pages with navbar
+│   │   ├── feed/         # Swipeable match cards
+│   │   ├── profile/      # View & edit profile
+│   │   ├── matches/      # Grid of matched users
+│   │   ├── messages/     # Conversations & chat
+│   │   └── community/    # Manage circle & vetting dashboard
+│   └── api/          # Auth.js route handler, profile API
+├── components/
+│   ├── feed/         # SwipeStack, SwipeCard, CommunityScoreBadge
+│   ├── ui/           # shadcn/ui components
+│   ├── navbar.tsx    # Responsive nav (top bar desktop, bottom tabs mobile)
+│   └── providers.tsx # SessionProvider + Toaster
+├── lib/              # Prisma client, Auth.js config
+└── types/            # TypeScript declarations
+prisma/
+├── schema.prisma     # Database schema (13 models)
+├── seed.ts           # Test data seeder
+└── migrations/       # SQL migrations
+server.ts             # Custom Node server (Next.js + Socket.io)
+```
+
+## Scripts
+
+| Command | Description |
+|---|---|
+| `npm run dev` | Start dev server with Socket.io |
+| `npm run dev:next` | Start Next.js dev server only |
+| `npm run build` | Production build |
+| `npm run start` | Start production server |
+| `npm run seed` | Seed database with test data |
+| `npm run lint` | Run ESLint |
+
+## Troubleshooting
+
+- **"Asynchronous response" error on sign-in**: This is caused by browser extensions (password managers, ad blockers). The auth is working — try disabling extensions or using incognito mode.
+- **Slow page loads**: If using `npx prisma dev`, the local Postgres can be slow. A real Postgres instance will be faster.
+- **Google sign-in not working**: You need to set `AUTH_GOOGLE_ID` and `AUTH_GOOGLE_SECRET` in `.env`. Email/password auth works without it.
