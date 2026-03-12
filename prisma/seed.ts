@@ -258,8 +258,8 @@ async function main() {
     data: {
       user1Id: u1_af,
       user2Id: u2_af,
-      status: "ACTIVE",
-      communityScore: 50,
+      status: "PENDING_VETTING",
+      communityScore: 0,
     },
   });
 
@@ -282,16 +282,7 @@ async function main() {
     ],
   });
 
-  const convo2 = await prisma.conversation.create({
-    data: { matchId: matchAliceFrank.id },
-  });
-
-  await prisma.conversationParticipant.createMany({
-    data: [
-      { conversationId: convo2.id, userId: alice.id },
-      { conversationId: convo2.id, userId: frank.id },
-    ],
-  });
+  // No conversation for Alice-Frank match — it's PENDING_VETTING
 
   // Add messages to Alice-Dave conversation
   await prisma.message.create({
@@ -327,16 +318,6 @@ async function main() {
       senderId: alice.id,
       content: "That sounds amazing! How about this Saturday if the weather holds up?",
       createdAt: new Date(Date.now() - 3600000 * 2),
-    },
-  });
-
-  // Add a message to Alice-Frank conversation
-  await prisma.message.create({
-    data: {
-      conversationId: convo2.id,
-      senderId: frank.id,
-      content: "Hi Alice! Fellow Bay Area person here. What's your favorite coffee spot in SF?",
-      createdAt: new Date(Date.now() - 3600000 * 1),
     },
   });
 

@@ -200,6 +200,7 @@ model Match {
 }
 
 enum MatchStatus {
+  PENDING_VETTING
   ACTIVE
   UNMATCHED
 }

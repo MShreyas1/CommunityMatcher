@@ -47,9 +47,15 @@ export function SwipeStack({ profiles }: SwipeStackProps) {
       }
 
       if (result.matched) {
-        toast.success("It's a match!", {
-          description: `You and ${currentProfile.displayName} liked each other!`,
-        });
+        if (result.pendingVetting) {
+          toast.success("Mutual interest!", {
+            description: "Waiting for your community to review.",
+          });
+        } else {
+          toast.success("It's a match!", {
+            description: "Start chatting.",
+          });
+        }
       }
 
       setCurrentIndex((prev) => prev + 1);

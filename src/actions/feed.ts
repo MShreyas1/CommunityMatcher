@@ -128,33 +128,45 @@ export async function recordSwipe(swipedId: string, action: SwipeAction) {
       // Ensure consistent ordering for the unique constraint
       const [u1, u2] = [userId, swipedId].sort();
 
-      // Create Match, Conversation, and ConversationParticipants in a transaction
+      // Check if either user has accepted vetters
+      const vetterCount = await prisma.communityMember.count({
+        where: {
+          ownerId: { in: [u1, u2] },
+          status: "ACCEPTED",
+        },
+      });
+
+      const needsVetting = vetterCount > 0;
+
       const match = await prisma.$transaction(async (tx) => {
         const newMatch = await tx.match.create({
           data: {
             user1Id: u1,
             user2Id: u2,
-            status: "ACTIVE",
+            status: needsVetting ? "PENDING_VETTING" : "ACTIVE",
           },
         });
 
-        const conversation = await tx.conversation.create({
-          data: {
-            matchId: newMatch.id,
-          },
-        });
+        // Only create conversation if skipping vetting (no vetters)
+        if (!needsVetting) {
+          const conversation = await tx.conversation.create({
+            data: {
+              matchId: newMatch.id,
+            },
+          });
 
-        await tx.conversationParticipant.createMany({
-          data: [
-            { conversationId: conversation.id, userId: u1 },
-            { conversationId: conversation.id, userId: u2 },
-          ],
-        });
+          await tx.conversationParticipant.createMany({
+            data: [
+              { conversationId: conversation.id, userId: u1 },
+              { conversationId: conversation.id, userId: u2 },
+            ],
+          });
+        }
 
         return newMatch;
       });
 
-      return { success: true, matched: true, matchId: match.id };
+      return { success: true, matched: true, matchId: match.id, pendingVetting: needsVetting };
     }
   }
 

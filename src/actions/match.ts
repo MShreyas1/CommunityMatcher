@@ -13,9 +13,19 @@ export async function getMatches() {
 
   const userId = session.user.id;
 
+  // Get the current user's accepted community members (their vetters)
+  const myVetterMemberships = await prisma.communityMember.findMany({
+    where: {
+      ownerId: userId,
+      status: "ACCEPTED",
+    },
+    select: { id: true },
+  });
+  const myVetterMembershipIds = myVetterMemberships.map((m: { id: string }) => m.id);
+
   const matches = await prisma.match.findMany({
     where: {
-      status: "ACTIVE",
+      status: { in: ["ACTIVE", "PENDING_VETTING"] },
       OR: [{ user1Id: userId }, { user2Id: userId }],
     },
     include: {
@@ -51,19 +61,64 @@ export async function getMatches() {
           },
         },
       },
+      // Include only votes from the current user's own circle (hub-and-spoke privacy)
+      votes: {
+        where: {
+          communityMemberId: { in: myVetterMembershipIds },
+        },
+        include: {
+          communityMember: {
+            include: {
+              vetter: {
+                select: {
+                  id: true,
+                  name: true,
+                  image: true,
+                },
+              },
+            },
+          },
+        },
+      },
     },
     orderBy: { createdAt: "desc" },
   });
 
-  // Map to include the "other user" for convenience
-  const enrichedMatches = matches.map((match: (typeof matches)[number]) => {
-    const otherUser =
-      match.user1.id === userId ? match.user2 : match.user1;
-    return {
-      ...match,
-      otherUser,
-    };
-  });
+  // For PENDING_VETTING matches, also include vetters who haven't voted yet
+  const enrichedMatches = await Promise.all(
+    matches.map(async (match: (typeof matches)[number]) => {
+      const otherUser =
+        match.user1.id === userId ? match.user2 : match.user1;
+
+      // For pending matches, get all the user's vetters so we can show who hasn't voted
+      let allVetters: { id: string; vetterId: string; vetter: { id: string; name: string | null; image: string | null } }[] = [];
+      if (match.status === "PENDING_VETTING" && myVetterMembershipIds.length > 0) {
+        allVetters = await prisma.communityMember.findMany({
+          where: {
+            ownerId: userId,
+            status: "ACCEPTED",
+          },
+          select: {
+            id: true,
+            vetterId: true,
+            vetter: {
+              select: {
+                id: true,
+                name: true,
+                image: true,
+              },
+            },
+          },
+        });
+      }
+
+      return {
+        ...match,
+        otherUser,
+        allVetters,
+      };
+    })
+  );
 
   return { success: true, matches: enrichedMatches };
 }

@@ -195,6 +195,43 @@ export async function submitVote(
     });
   }
 
+  // Check if all vetters have now voted — if so, activate the match
+  if (match.status === "PENDING_VETTING") {
+    // Count all accepted vetters for both match participants
+    const totalVetters = await prisma.communityMember.count({
+      where: {
+        ownerId: { in: [match.user1Id, match.user2Id] },
+        status: "ACCEPTED",
+      },
+    });
+
+    // Count how many votes exist for this match
+    const voteCount = await prisma.vettingVote.count({
+      where: { matchId: parsed.data.matchId },
+    });
+
+    if (voteCount >= totalVetters) {
+      // All vetters have voted — activate the match and create conversation
+      await prisma.$transaction(async (tx) => {
+        await tx.match.update({
+          where: { id: parsed.data.matchId },
+          data: { status: "ACTIVE" },
+        });
+
+        const conversation = await tx.conversation.create({
+          data: { matchId: parsed.data.matchId },
+        });
+
+        await tx.conversationParticipant.createMany({
+          data: [
+            { conversationId: conversation.id, userId: match.user1Id },
+            { conversationId: conversation.id, userId: match.user2Id },
+          ],
+        });
+      });
+    }
+  }
+
   revalidatePath("/community");
   revalidatePath("/matches");
   return { success: true };
@@ -242,10 +279,10 @@ export async function getVettingQueue() {
     ownerNameMap[m.ownerId] = m.owner.name;
   }
 
-  // Find active matches involving the owners that the user hasn't voted on yet
+  // Find pending-vetting matches involving the owners that the user hasn't voted on yet
   const matches = await prisma.match.findMany({
     where: {
-      status: "ACTIVE",
+      status: "PENDING_VETTING",
       OR: [
         { user1Id: { in: ownerIds } },
         { user2Id: { in: ownerIds } },
