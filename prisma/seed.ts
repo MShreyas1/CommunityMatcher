@@ -35,6 +35,7 @@ async function main() {
       email: "alice@example.com",
       password,
       image: null,
+      emailVerified: new Date(),
     },
   });
 
@@ -44,6 +45,7 @@ async function main() {
       email: "bob@example.com",
       password,
       image: null,
+      emailVerified: new Date(),
     },
   });
 
@@ -53,6 +55,7 @@ async function main() {
       email: "carol@example.com",
       password,
       image: null,
+      emailVerified: new Date(),
     },
   });
 
@@ -62,6 +65,7 @@ async function main() {
       email: "dave@example.com",
       password,
       image: null,
+      emailVerified: new Date(),
     },
   });
 
@@ -71,6 +75,7 @@ async function main() {
       email: "emma@example.com",
       password,
       image: null,
+      emailVerified: new Date(),
     },
   });
 
@@ -80,6 +85,7 @@ async function main() {
       email: "frank@example.com",
       password,
       image: null,
+      emailVerified: new Date(),
     },
   });
 
