@@ -1,6 +1,6 @@
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Heart, Users, MessageCircle, Sparkles, ArrowRight, Zap } from "lucide-react";
+import { ArrowRight, MessageCircle, Sparkles, Users, Zap } from "lucide-react";
+import Link from "next/link";
 
 export default function LandingPage() {
   return (
@@ -9,20 +9,21 @@ export default function LandingPage() {
       <section className="gradient-hero flex flex-1 flex-col items-center justify-center gap-10 px-6 py-28 text-center relative z-10">
         <div className="flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-5 py-2 text-sm font-medium text-primary glow-sm">
           <Sparkles className="size-4" />
-          Community-powered connections
+          Community-vetted dating
         </div>
 
         <h1 className="max-w-3xl text-5xl font-bold leading-[1.1] tracking-tight sm:text-6xl lg:text-7xl">
-          Find meaningful connections through{" "}
-          <span className="gradient-primary bg-clip-text text-transparent text-glow">
-            shared communities
+          <span className="gradient-primary-text text-glow">
+            SamuDate.
           </span>
+          <br />
+          Dates your people believe in.
         </h1>
 
         <p className="max-w-xl text-lg leading-relaxed text-muted-foreground">
-          CommunityMatcher helps you meet people who already share your
-          interests, values, and social circles. Join communities you care
-          about and get matched with like-minded individuals.
+          Your friends, family, and trusted circle vet your matches before
+          you ever meet. Real connections, backed by the people who know
+          you best.
         </p>
 
         <div className="flex flex-col gap-4 sm:flex-row">
@@ -52,23 +53,23 @@ export default function LandingPage() {
         {[
           {
             icon: Users,
-            title: "Community First",
+            title: "Your Inner Circle",
             description:
-              "Join communities that reflect who you are -- hobby groups, local organizations, professional networks, and more.",
+              "Invite the friends and family who know you best. They review your matches and give their honest take before you connect.",
             glow: "group-hover:glow-sm",
           },
           {
             icon: Zap,
-            title: "Smarter Matches",
+            title: "Community Score",
             description:
-              "Our matching considers shared communities, mutual interests, and compatibility signals to surface the people you are most likely to click with.",
+              "Every match gets a vetting score from your circle. See at a glance who your people approve of — and who they don't.",
             glow: "group-hover:glow-cyan",
           },
           {
             icon: MessageCircle,
-            title: "Real Conversations",
+            title: "Conversations with Confidence",
             description:
-              "Start conversations with context. Shared communities give you something genuine to talk about from the very first message.",
+              "Only chat with matches your circle has approved. No more guessing — start every conversation knowing someone has your back.",
             glow: "group-hover:glow-sm",
           },
         ].map((feature) => (
