@@ -322,6 +322,177 @@ export async function getOwnerFeed() {
   return { success: true, suggestions };
 }
 
+/**
+ * Discovery feed — profiles matching the current user's preferences that
+ * haven't been suggested, matched, or passed on yet. Shown alongside (but
+ * after) community-vetted suggestions so the feed is never empty.
+ */
+export async function getDiscoveryProfiles() {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return { error: "Not authenticated" };
+  }
+
+  const userId = session.user.id;
+
+  const myProfile = await prisma.profile.findUnique({
+    where: { userId },
+  });
+
+  if (!myProfile) {
+    return { error: "Please create a profile first" };
+  }
+
+  // IDs to exclude: self, anyone already in a Suggestion (any status), active matches
+  const existingSuggestions = await prisma.suggestion.findMany({
+    where: { ownerId: userId },
+    select: { suggestedId: true },
+  });
+
+  const existingMatches = await prisma.match.findMany({
+    where: {
+      OR: [{ user1Id: userId }, { user2Id: userId }],
+      status: "ACTIVE",
+    },
+    select: { user1Id: true, user2Id: true },
+  });
+
+  const matchedIds = existingMatches.map((m) =>
+    m.user1Id === userId ? m.user2Id : m.user1Id
+  );
+
+  const excludeIds = [
+    userId,
+    ...existingSuggestions.map((s) => s.suggestedId),
+    ...matchedIds,
+  ];
+
+  // Age range filter
+  const now = new Date();
+  const maxBirthDate = new Date(
+    now.getFullYear() - myProfile.ageMin,
+    now.getMonth(),
+    now.getDate()
+  );
+  const minBirthDate = new Date(
+    now.getFullYear() - myProfile.ageMax,
+    now.getMonth(),
+    now.getDate()
+  );
+
+  // Gender filter
+  const genderFilter: Record<string, unknown> = {};
+  if (myProfile.lookingFor && myProfile.lookingFor !== "everyone") {
+    genderFilter.gender =
+      myProfile.lookingFor === "men"
+        ? "male"
+        : myProfile.lookingFor === "women"
+          ? "female"
+          : myProfile.lookingFor;
+  }
+
+  const profiles = await prisma.profile.findMany({
+    where: {
+      userId: { notIn: excludeIds },
+      dateOfBirth: {
+        gte: minBirthDate,
+        lte: maxBirthDate,
+      },
+      ...genderFilter,
+    },
+    include: {
+      photos: { orderBy: { order: "asc" } },
+      user: { select: { id: true, name: true } },
+    },
+    take: 20,
+    orderBy: { createdAt: "desc" },
+  });
+
+  return { success: true, profiles };
+}
+
+/**
+ * Owner acts on a discovery profile (one without a community suggestion).
+ * APPROVED → creates Suggestion (APPROVED) + Match + Conversation.
+ * PASSED → creates Suggestion (PASSED) so it won't reappear.
+ */
+export async function respondToDiscovery(
+  targetUserId: string,
+  action: "APPROVED" | "PASSED"
+) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return { error: "Not authenticated" };
+  }
+
+  const userId = session.user.id;
+
+  if (targetUserId === userId) {
+    return { error: "Cannot match with yourself" };
+  }
+
+  // Check no existing suggestion already
+  const existing = await prisma.suggestion.findUnique({
+    where: { ownerId_suggestedId: { ownerId: userId, suggestedId: targetUserId } },
+  });
+
+  if (existing) {
+    return { error: "Already acted on this profile" };
+  }
+
+  if (action === "PASSED") {
+    await prisma.suggestion.create({
+      data: {
+        ownerId: userId,
+        suggestedId: targetUserId,
+        status: "PASSED",
+      },
+    });
+
+    revalidatePath("/feed");
+    return { success: true };
+  }
+
+  // APPROVED — create suggestion + match + conversation
+  const [u1, u2] = [userId, targetUserId].sort();
+
+  await prisma.$transaction(async (tx) => {
+    const suggestion = await tx.suggestion.create({
+      data: {
+        ownerId: userId,
+        suggestedId: targetUserId,
+        status: "APPROVED",
+        communityScore: 0,
+      },
+    });
+
+    const match = await tx.match.create({
+      data: {
+        user1Id: u1,
+        user2Id: u2,
+        status: "ACTIVE",
+        communityScore: 0,
+        suggestionId: suggestion.id,
+      },
+    });
+
+    const conversation = await tx.conversation.create({
+      data: { matchId: match.id },
+    });
+
+    await tx.conversationParticipant.createMany({
+      data: [
+        { conversationId: conversation.id, userId: u1 },
+        { conversationId: conversation.id, userId: u2 },
+      ],
+    });
+  });
+
+  revalidatePath("/feed");
+  revalidatePath("/matches");
+  return { success: true, matched: true };
+}
+
 const respondSchema = z.object({
   suggestionId: z.string().min(1),
   action: z.enum(["APPROVED", "PASSED"]),

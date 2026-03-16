@@ -117,9 +117,14 @@ export default function ProfileEditPage() {
         }
       });
 
-      formData.set("detailPreset", selectedPreset);
-      if (selectedPreset && Object.keys(detailAnswers).length > 0) {
-        formData.set("detailAnswers", JSON.stringify(detailAnswers));
+      if (selectedPreset) {
+        formData.set("detailPreset", selectedPreset);
+        const filledAnswers = Object.fromEntries(
+          Object.entries(detailAnswers).filter(([, v]) => v !== "")
+        );
+        if (Object.keys(filledAnswers).length > 0) {
+          formData.set("detailAnswers", JSON.stringify(filledAnswers));
+        }
       }
 
       const result = isEditing

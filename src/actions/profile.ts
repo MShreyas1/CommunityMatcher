@@ -43,22 +43,22 @@ export async function createProfile(formData: FormData) {
     return { error: "Too many requests. Please try again shortly." };
   }
 
-  const get = (key: string) => formData.get(key) ?? undefined;
+  const toVal = (v: FormDataEntryValue | null) => (v == null || v === "" ? undefined : v);
 
   const parsed = profileSchema.safeParse({
-    displayName: get("displayName"),
-    bio: get("bio"),
-    dateOfBirth: get("dateOfBirth"),
-    gender: get("gender"),
-    location: get("location"),
-    occupation: get("occupation"),
-    detailPreset: get("detailPreset"),
-    detailAnswers: get("detailAnswers"),
-    lookingFor: get("lookingFor"),
-    ageMin: get("ageMin"),
-    ageMax: get("ageMax"),
-    maxDistance: get("maxDistance"),
-    relationshipGoal: get("relationshipGoal"),
+    displayName: formData.get("displayName"),
+    bio: toVal(formData.get("bio")),
+    dateOfBirth: formData.get("dateOfBirth"),
+    gender: formData.get("gender"),
+    location: toVal(formData.get("location")),
+    occupation: toVal(formData.get("occupation")),
+    detailPreset: toVal(formData.get("detailPreset")),
+    detailAnswers: toVal(formData.get("detailAnswers")),
+    lookingFor: toVal(formData.get("lookingFor")),
+    ageMin: toVal(formData.get("ageMin")),
+    ageMax: toVal(formData.get("ageMax")),
+    maxDistance: toVal(formData.get("maxDistance")),
+    relationshipGoal: toVal(formData.get("relationshipGoal")),
   });
 
   if (!parsed.success) {
