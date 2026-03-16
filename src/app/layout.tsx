@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "CommunityMatcher",
-  description: "Find meaningful connections through shared communities",
+  title: "SamuDate",
+  description: "Dating, vetted by the people who know you best",
 };
 
 export default function RootLayout({

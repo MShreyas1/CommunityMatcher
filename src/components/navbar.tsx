@@ -47,8 +47,8 @@ export function Navbar() {
           <div className="flex size-8 items-center justify-center rounded-lg gradient-primary glow-sm">
             <Heart className="size-4 text-white" />
           </div>
-          <span className="gradient-primary bg-clip-text text-transparent">
-            CommunityMatcher
+          <span className="gradient-primary-text">
+            SamuDate
           </span>
         </Link>
 
