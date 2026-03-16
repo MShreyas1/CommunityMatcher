@@ -17,16 +17,6 @@ export async function sendMessage(conversationId: string, content: string) {
     return { error: "Not authenticated" };
   }
 
-  // Email verification check
-  const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    select: { emailVerified: true },
-  });
-
-  if (!user?.emailVerified) {
-    return { error: "Please verify your email before sending messages." };
-  }
-
   // Rate limit: 20 messages per minute
   const rateLimitResult = rateLimit({
     key: `send-message:${session.user.id}`,
