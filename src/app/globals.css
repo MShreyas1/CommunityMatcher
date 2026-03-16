@@ -344,3 +344,49 @@
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
 }
+
+/* Swipe card animations */
+@keyframes swipeRight {
+  0% {
+    transform: translateX(0) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(150%) rotate(15deg);
+    opacity: 0;
+  }
+}
+
+@keyframes swipeLeft {
+  0% {
+    transform: translateX(0) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(-150%) rotate(-15deg);
+    opacity: 0;
+  }
+}
+
+@keyframes cardEnter {
+  0% {
+    transform: scale(0.92) translateY(12px);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-swipe-right {
+  animation: swipeRight 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.animate-swipe-left {
+  animation: swipeLeft 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.animate-card-enter {
+  animation: cardEnter 0.35s cubic-bezier(0, 0, 0.2, 1) forwards;
+}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useCallback } from "react";
 import { Check, X, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -48,33 +48,55 @@ interface SuggestionStackProps {
 export function SuggestionStack({ suggestions }: SuggestionStackProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPending, startTransition] = useTransition();
+  const [swipeDirection, setSwipeDirection] = useState<"left" | "right" | null>(null);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [cardKey, setCardKey] = useState(0);
 
   const currentSuggestion = suggestions[currentIndex];
 
-  function handleAction(action: "APPROVED" | "PASSED") {
-    if (!currentSuggestion) return;
+  const handleAction = useCallback(
+    (action: "APPROVED" | "PASSED") => {
+      if (!currentSuggestion || isAnimating) return;
 
-    startTransition(async () => {
-      const result = await respondToSuggestion(currentSuggestion.id, action);
+      // Start swipe animation
+      setSwipeDirection(action === "APPROVED" ? "right" : "left");
+      setIsAnimating(true);
 
-      if (result.error) {
-        toast.error(
-          typeof result.error === "string"
-            ? result.error
-            : "Something went wrong"
-        );
-        return;
-      }
+      // After animation completes, do the API call and advance
+      setTimeout(() => {
+        startTransition(async () => {
+          const result = await respondToSuggestion(currentSuggestion.id, action);
 
-      if (action === "APPROVED") {
-        toast.success("It's a match!", {
-          description: "Start chatting now.",
+          if (result.error) {
+            toast.error(
+              typeof result.error === "string"
+                ? result.error
+                : "Something went wrong"
+            );
+            setSwipeDirection(null);
+            setIsAnimating(false);
+            return;
+          }
+
+          if (action === "APPROVED") {
+            toast.success("It's a match!", {
+              description: "Start chatting now.",
+            });
+          }
+
+          setSwipeDirection(null);
+          setCurrentIndex((prev) => prev + 1);
+          setCardKey((prev) => prev + 1);
+
+          // Small delay before allowing next interaction
+          requestAnimationFrame(() => {
+            setIsAnimating(false);
+          });
         });
-      }
-
-      setCurrentIndex((prev) => prev + 1);
-    });
-  }
+      }, 350);
+    },
+    [currentSuggestion, isAnimating, startTransition]
+  );
 
   if (!currentSuggestion) {
     return (
@@ -92,19 +114,34 @@ export function SuggestionStack({ suggestions }: SuggestionStackProps) {
     );
   }
 
+  const swipeClass = swipeDirection === "right"
+    ? "animate-swipe-right"
+    : swipeDirection === "left"
+      ? "animate-swipe-left"
+      : "animate-card-enter";
+
   return (
     <div className="flex flex-col items-center gap-8">
-      <div className="transition-all duration-300 ease-out">
-        <SuggestionCard suggestion={currentSuggestion} />
+      <div className="relative">
+        {/* Shadow card behind for depth */}
+        {currentIndex + 1 < suggestions.length && (
+          <div className="absolute inset-0 translate-y-2 scale-[0.96] opacity-40 pointer-events-none">
+            <SuggestionCard suggestion={suggestions[currentIndex + 1]} />
+          </div>
+        )}
+        <div key={cardKey} className={swipeClass}>
+          <SuggestionCard suggestion={currentSuggestion} />
+        </div>
       </div>
 
+      {/* Swipe indicator overlays */}
       <div className="flex items-center gap-8">
         <Button
           variant="outline"
           size="lg"
           className="rounded-full size-16 border-2 border-destructive/30 bg-destructive/5 hover:border-destructive hover:bg-destructive/15 transition-all duration-300 hover:scale-110 active:scale-95 hover:glow-red"
           onClick={() => handleAction("PASSED")}
-          disabled={isPending}
+          disabled={isPending || isAnimating}
           aria-label="Pass"
         >
           <X className="size-7 text-destructive" />
@@ -114,7 +151,7 @@ export function SuggestionStack({ suggestions }: SuggestionStackProps) {
           size="lg"
           className="rounded-full size-16 border-2 border-green-500/30 bg-green-500/5 hover:border-green-500 hover:bg-green-500/15 transition-all duration-300 hover:scale-110 active:scale-95 hover:glow-green"
           onClick={() => handleAction("APPROVED")}
-          disabled={isPending}
+          disabled={isPending || isAnimating}
           aria-label="Approve"
         >
           <Check className="size-7 text-green-500" />
