@@ -1,55 +1,6 @@
 import type { NextAuthConfig } from "next-auth";
-import Google from "next-auth/providers/google";
-import Credentials from "next-auth/providers/credentials";
-import bcrypt from "bcryptjs";
-import { prisma } from "@/lib/prisma";
 
 export const authConfig: NextAuthConfig = {
-  providers: [
-    Google,
-    Credentials({
-      credentials: {
-        email: { label: "Email", type: "email" },
-        password: { label: "Password", type: "password" },
-      },
-      async authorize(credentials) {
-        try {
-          if (!credentials?.email || !credentials?.password) return null;
-
-          const email = (credentials.email as string).trim().toLowerCase();
-          const user = await prisma.user.findUnique({
-            where: { email },
-          });
-
-          if (!user || !user.password) {
-            console.error("[AUTH] No user or no password for:", email);
-            return null;
-          }
-
-          const isValid = await bcrypt.compare(
-            credentials.password as string,
-            user.password
-          );
-
-          if (!isValid) {
-            console.error("[AUTH] Invalid password for:", email);
-            return null;
-          }
-
-          return {
-            id: user.id,
-            name: user.name,
-            email: user.email,
-            image: user.image,
-            emailVerified: user.emailVerified,
-          };
-        } catch (error) {
-          console.error("[AUTH] authorize error:", error);
-          return null;
-        }
-      },
-    }),
-  ],
   pages: {
     signIn: "/login",
   },
@@ -77,4 +28,5 @@ export const authConfig: NextAuthConfig = {
       return true;
     },
   },
+  providers: [],
 };
