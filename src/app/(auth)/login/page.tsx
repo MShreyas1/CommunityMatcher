@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -26,6 +27,8 @@ type LoginValues = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
+  const searchParams = useSearchParams();
+  const error = searchParams.get("error");
 
   const {
     register,
@@ -38,11 +41,17 @@ export default function LoginPage() {
   async function onSubmit(data: LoginValues) {
     setIsLoading(true);
     try {
-      await signIn("credentials", {
+      const result = await signIn("credentials", {
         email: data.email,
         password: data.password,
-        redirectTo: "/feed",
+        redirect: false,
       });
+
+      if (result?.error) {
+        toast.error("Invalid email or password.");
+      } else {
+        window.location.href = "/feed";
+      }
     } catch {
       toast.error("Something went wrong. Please try again.");
     } finally {
@@ -73,6 +82,11 @@ export default function LoginPage() {
         </p>
       </div>
       <CardContent className="px-8 pt-6 pb-4">
+        {error && (
+          <div className="mb-4 rounded-lg bg-destructive/10 border border-destructive/20 px-4 py-3 text-sm text-destructive">
+            Invalid email or password. Please try again.
+          </div>
+        )}
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">
             <label htmlFor="email" className="text-sm font-medium">
