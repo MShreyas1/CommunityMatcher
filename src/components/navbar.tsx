@@ -39,12 +39,12 @@ export function Navbar() {
   return (
     <>
       {/* Desktop top bar */}
-      <header className="hidden md:flex fixed top-0 left-0 right-0 z-50 h-16 items-center glass border-b border-border/40 px-8">
+      <header className="hidden md:flex fixed top-0 left-0 right-0 z-50 h-16 items-center glass border-b border-border/30 px-8">
         <Link
           href="/feed"
           className="mr-10 flex items-center gap-2 text-lg font-bold tracking-tight"
         >
-          <div className="flex size-8 items-center justify-center rounded-lg gradient-primary">
+          <div className="flex size-8 items-center justify-center rounded-lg gradient-primary glow-sm">
             <Heart className="size-4 text-white" />
           </div>
           <span className="gradient-primary bg-clip-text text-transparent">
@@ -64,7 +64,7 @@ export function Navbar() {
                   className={cn(
                     "gap-2 rounded-xl px-4 font-medium transition-all duration-200",
                     isActive
-                      ? "bg-primary/10 text-primary font-semibold hover:bg-primary/15"
+                      ? "bg-primary/15 text-primary font-semibold border border-primary/20 glow-sm"
                       : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
                   )}
                 >
@@ -77,14 +77,14 @@ export function Navbar() {
         </nav>
 
         <div className="ml-auto flex items-center gap-3">
-          <Avatar size="sm" className="ring-2 ring-border">
+          <Avatar size="sm" className="ring-2 ring-primary/20">
             {session?.user?.image && (
               <AvatarImage
                 src={session.user.image}
                 alt={session.user.name ?? "User"}
               />
             )}
-            <AvatarFallback className="text-xs font-medium">
+            <AvatarFallback className="text-xs font-medium bg-primary/10 text-primary">
               {userInitials}
             </AvatarFallback>
           </Avatar>
@@ -93,7 +93,7 @@ export function Navbar() {
             size="icon-sm"
             onClick={() => signOut({ callbackUrl: "/" })}
             aria-label="Sign out"
-            className="rounded-xl text-muted-foreground hover:text-foreground transition-colors"
+            className="rounded-xl text-muted-foreground hover:text-foreground hover:bg-destructive/10 transition-colors"
           >
             <LogOut className="size-4" />
           </Button>
@@ -101,7 +101,7 @@ export function Navbar() {
       </header>
 
       {/* Mobile bottom tab bar */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 flex md:hidden h-[4.5rem] items-center justify-around glass border-t border-border/40 px-2 pb-safe">
+      <nav className="fixed bottom-0 left-0 right-0 z-50 flex md:hidden h-[4.5rem] items-center justify-around glass border-t border-border/30 px-2 pb-safe">
         {navLinks.map(({ href, label, icon: Icon }) => {
           const isActive =
             pathname === href || pathname.startsWith(href + "/");
@@ -119,7 +119,7 @@ export function Navbar() {
               <div
                 className={cn(
                   "flex items-center justify-center rounded-xl p-1.5 transition-all duration-200",
-                  isActive && "bg-primary/10"
+                  isActive && "bg-primary/15 border border-primary/20 glow-sm"
                 )}
               >
                 <Icon className="size-5" />

@@ -198,7 +198,7 @@ export function ChatWindow({
           </div>
         ) : messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center">
-            <div className="rounded-2xl bg-gradient-to-br from-primary/10 to-primary/5 p-6 mb-4">
+            <div className="rounded-2xl gradient-primary-subtle border border-primary/15 p-6 mb-4 glow-sm">
               <Avatar className="size-16 ring-2 ring-primary/20 mx-auto">
                 {otherUserAvatar && (
                   <AvatarImage src={otherUserAvatar} alt={otherUserName} />
@@ -244,7 +244,7 @@ export function ChatWindow({
           type="submit"
           size="sm"
           disabled={isSending || !messageInput.trim()}
-          className="shrink-0 size-11 rounded-xl gradient-primary border-0 shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 disabled:opacity-40"
+          className="shrink-0 size-11 rounded-xl gradient-primary border-0 shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 disabled:opacity-40 glow hover:glow-lg"
         >
           {isSending ? (
             <Loader2 className="size-4 animate-spin" />

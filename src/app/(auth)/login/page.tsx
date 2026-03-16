@@ -62,9 +62,9 @@ export default function LoginPage() {
   }
 
   return (
-    <Card className="w-full max-w-md card-shadow-lg border-border/50 rounded-2xl overflow-hidden">
+    <Card className="w-full max-w-md card-shadow-lg border-primary/10 rounded-2xl overflow-hidden glow-sm">
       <div className="flex flex-col items-center pt-10 pb-2">
-        <div className="flex size-14 items-center justify-center rounded-2xl gradient-primary mb-4">
+        <div className="flex size-14 items-center justify-center rounded-2xl gradient-primary mb-4 glow">
           <Heart className="size-7 text-white" />
         </div>
         <h1 className="text-2xl font-bold tracking-tight">Welcome back</h1>
@@ -82,7 +82,7 @@ export default function LoginPage() {
               id="email"
               type="email"
               placeholder="you@example.com"
-              className="h-11 rounded-xl bg-muted/50 border-border/50 focus:bg-background transition-colors duration-200"
+              className="h-11 rounded-xl bg-muted/50 border-border/50 focus:border-primary/40 focus:bg-background transition-all duration-200 focus:glow-sm"
               {...register("email")}
             />
             {errors.email && (
@@ -99,7 +99,7 @@ export default function LoginPage() {
               id="password"
               type="password"
               placeholder="Enter your password"
-              className="h-11 rounded-xl bg-muted/50 border-border/50 focus:bg-background transition-colors duration-200"
+              className="h-11 rounded-xl bg-muted/50 border-border/50 focus:border-primary/40 focus:bg-background transition-all duration-200 focus:glow-sm"
               {...register("password")}
             />
             {errors.password && (
@@ -110,7 +110,7 @@ export default function LoginPage() {
           </div>
           <Button
             type="submit"
-            className="w-full h-11 rounded-xl gradient-primary border-0 font-semibold text-base shadow-md hover:shadow-lg transition-all duration-300 hover:scale-[1.01]"
+            className="w-full h-11 rounded-xl gradient-primary border-0 font-semibold text-base shadow-md hover:shadow-lg transition-all duration-300 hover:scale-[1.01] glow hover:glow-lg"
             disabled={isLoading}
           >
             {isLoading ? "Signing in..." : "Sign In"}
@@ -119,7 +119,7 @@ export default function LoginPage() {
 
         <div className="relative my-6">
           <div className="absolute inset-0 flex items-center">
-            <span className="w-full border-t border-border/50" />
+            <span className="w-full border-t border-border/30" />
           </div>
           <div className="relative flex justify-center text-xs uppercase">
             <span className="bg-card px-3 text-muted-foreground font-medium">
@@ -130,7 +130,7 @@ export default function LoginPage() {
 
         <Button
           variant="outline"
-          className="w-full h-11 rounded-xl border-border/50 font-medium hover:bg-muted/50 transition-all duration-200"
+          className="w-full h-11 rounded-xl border-border/40 font-medium hover:bg-muted/50 hover:border-primary/20 transition-all duration-200"
           onClick={handleGoogleSignIn}
           disabled={isLoading}
         >

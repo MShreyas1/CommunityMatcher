@@ -13,9 +13,9 @@ async function main() {
   await prisma.message.deleteMany();
   await prisma.conversationParticipant.deleteMany();
   await prisma.conversation.deleteMany();
-  await prisma.vettingVote.deleteMany();
-  await prisma.swipe.deleteMany();
   await prisma.match.deleteMany();
+  await prisma.suggestionVote.deleteMany();
+  await prisma.suggestion.deleteMany();
   await prisma.communityMember.deleteMany();
   await prisma.photo.deleteMany();
   await prisma.profile.deleteMany();
@@ -206,7 +206,7 @@ async function main() {
   });
 
   // Dave's circle: Frank is his vetter, Emma is pending
-  await prisma.communityMember.create({
+  const daveFrankMember = await prisma.communityMember.create({
     data: {
       ownerId: dave.id,
       vetterId: frank.id,
@@ -226,51 +226,90 @@ async function main() {
 
   console.log("Created community circles");
 
-  // Create swipes and matches
-  // Alice and Dave: mutual match
-  const [u1_ad, u2_ad] = [alice.id, dave.id].sort();
-  await prisma.swipe.create({
-    data: { swiperId: alice.id, swipedId: dave.id, action: "ACCEPT" },
+  // ─── Suggestions ───
+
+  // Bob and Carol both suggest Dave to Alice (APPROVE + comments) → consolidated Suggestion
+  const suggestionDaveForAlice = await prisma.suggestion.create({
+    data: {
+      ownerId: alice.id,
+      suggestedId: dave.id,
+      status: "APPROVED",
+      communityScore: 100,
+    },
   });
-  await prisma.swipe.create({
-    data: { swiperId: dave.id, swipedId: alice.id, action: "ACCEPT" },
+
+  await prisma.suggestionVote.create({
+    data: {
+      suggestionId: suggestionDaveForAlice.id,
+      communityMemberId: aliceBobMember.id,
+      vote: "APPROVE",
+      comment: "Dave seems like a great guy, very thoughtful and smart!",
+    },
   });
+
+  await prisma.suggestionVote.create({
+    data: {
+      suggestionId: suggestionDaveForAlice.id,
+      communityMemberId: aliceCarolMember.id,
+      vote: "APPROVE",
+      comment: "I think you two would really hit it off. He's into similar stuff.",
+    },
+  });
+
+  // Bob suggests Frank to Alice (NEUTRAL) → PENDING suggestion
+  const suggestionFrankForAlice = await prisma.suggestion.create({
+    data: {
+      ownerId: alice.id,
+      suggestedId: frank.id,
+      status: "PENDING",
+      communityScore: 50, // neutral = 50%
+    },
+  });
+
+  await prisma.suggestionVote.create({
+    data: {
+      suggestionId: suggestionFrankForAlice.id,
+      communityMemberId: aliceBobMember.id,
+      vote: "NEUTRAL",
+      comment: "He seems nice but I don't know him well enough to say.",
+    },
+  });
+
+  // Frank suggests Carol to Dave (APPROVE) → PENDING suggestion
+  const suggestionCarolForDave = await prisma.suggestion.create({
+    data: {
+      ownerId: dave.id,
+      suggestedId: carol.id,
+      status: "PENDING",
+      communityScore: 100,
+    },
+  });
+
+  await prisma.suggestionVote.create({
+    data: {
+      suggestionId: suggestionCarolForDave.id,
+      communityMemberId: daveFrankMember.id,
+      vote: "APPROVE",
+      comment: "Carol is awesome - super smart and into outdoor stuff like you!",
+    },
+  });
+
+  console.log("Created suggestions and votes");
+
+  // ─── Alice approved the Dave suggestion → Match + Conversation ───
+
+  const [u1, u2] = [alice.id, dave.id].sort();
 
   const matchAliceDave = await prisma.match.create({
     data: {
-      user1Id: u1_ad,
-      user2Id: u2_ad,
+      user1Id: u1,
+      user2Id: u2,
       status: "ACTIVE",
-      communityScore: 75,
+      communityScore: 100,
+      suggestionId: suggestionDaveForAlice.id,
     },
   });
 
-  // Alice and Frank: mutual match
-  const [u1_af, u2_af] = [alice.id, frank.id].sort();
-  await prisma.swipe.create({
-    data: { swiperId: alice.id, swipedId: frank.id, action: "ACCEPT" },
-  });
-  await prisma.swipe.create({
-    data: { swiperId: frank.id, swipedId: alice.id, action: "ACCEPT" },
-  });
-
-  const matchAliceFrank = await prisma.match.create({
-    data: {
-      user1Id: u1_af,
-      user2Id: u2_af,
-      status: "PENDING_VETTING",
-      communityScore: 0,
-    },
-  });
-
-  // Bob passed on Carol
-  await prisma.swipe.create({
-    data: { swiperId: bob.id, swipedId: carol.id, action: "PASS" },
-  });
-
-  console.log("Created swipes and matches");
-
-  // Create conversations for matches
   const convo1 = await prisma.conversation.create({
     data: { matchId: matchAliceDave.id },
   });
@@ -281,8 +320,6 @@ async function main() {
       { conversationId: convo1.id, userId: dave.id },
     ],
   });
-
-  // No conversation for Alice-Frank match — it's PENDING_VETTING
 
   // Add messages to Alice-Dave conversation
   await prisma.message.create({
@@ -321,37 +358,16 @@ async function main() {
     },
   });
 
-  console.log("Created conversations and messages");
-
-  // Create vetting votes on Alice-Dave match
-  await prisma.vettingVote.create({
-    data: {
-      communityMemberId: aliceBobMember.id,
-      matchId: matchAliceDave.id,
-      vote: "APPROVE",
-      comment: "Dave seems like a great guy, very thoughtful and smart!",
-    },
-  });
-
-  await prisma.vettingVote.create({
-    data: {
-      communityMemberId: aliceCarolMember.id,
-      matchId: matchAliceDave.id,
-      vote: "APPROVE",
-      comment: "I think you two would really hit it off. He's into similar stuff.",
-    },
-  });
-
-  console.log("Created vetting votes");
+  console.log("Created match, conversation, and messages");
 
   console.log("\n--- Seed Complete ---");
   console.log("\nTest accounts (all passwords: password123):");
-  console.log("  alice@example.com  - Has matches, messages, community circle");
-  console.log("  bob@example.com    - Vetter in Alice's circle");
-  console.log("  carol@example.com  - Vetter in Alice's circle");
-  console.log("  dave@example.com   - Matched with Alice, has community circle");
+  console.log("  alice@example.com  - Has approved suggestion (Dave), pending suggestion (Frank), active match + messages");
+  console.log("  bob@example.com    - Vetter in Alice's circle, suggested Dave and Frank");
+  console.log("  carol@example.com  - Vetter in Alice's circle, suggested Dave");
+  console.log("  dave@example.com   - Matched with Alice, has pending suggestion (Carol from Frank)");
   console.log("  emma@example.com   - Pending invite from Dave");
-  console.log("  frank@example.com  - Matched with Alice, vetter for Dave");
+  console.log("  frank@example.com  - Vetter for Dave, suggested Carol");
 }
 
 main()

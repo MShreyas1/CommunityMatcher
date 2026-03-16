@@ -57,7 +57,7 @@ export default async function ProfilePage() {
           <Button
             variant="outline"
             size="sm"
-            className="gap-2 rounded-xl border-border/50 hover:bg-primary/5 transition-all duration-200"
+            className="gap-2 rounded-xl border-primary/20 hover:bg-primary/10 hover:border-primary/30 transition-all duration-200"
           >
             <Pencil className="size-3.5" />
             Edit Profile
@@ -104,7 +104,7 @@ export default async function ProfilePage() {
           <div className="space-y-3">
             {profile.occupation && (
               <div className="flex items-center gap-3 text-sm">
-                <div className="flex size-8 items-center justify-center rounded-lg bg-primary/10">
+                <div className="flex size-8 items-center justify-center rounded-lg bg-primary/10 border border-primary/15">
                   <Briefcase className="size-4 text-primary" />
                 </div>
                 {profile.occupation}
@@ -112,14 +112,14 @@ export default async function ProfilePage() {
             )}
             {profile.location && (
               <div className="flex items-center gap-3 text-sm">
-                <div className="flex size-8 items-center justify-center rounded-lg bg-primary/10">
+                <div className="flex size-8 items-center justify-center rounded-lg bg-primary/10 border border-primary/15">
                   <MapPin className="size-4 text-primary" />
                 </div>
                 {profile.location}
               </div>
             )}
             <div className="flex items-center gap-3 text-sm">
-              <div className="flex size-8 items-center justify-center rounded-lg bg-primary/10">
+              <div className="flex size-8 items-center justify-center rounded-lg bg-primary/10 border border-primary/15">
                 <Calendar className="size-4 text-primary" />
               </div>
               {profile.dateOfBirth.toLocaleDateString()}
@@ -134,7 +134,7 @@ export default async function ProfilePage() {
         <div className="space-y-3">
           {profile.lookingFor && (
             <div className="flex items-center gap-3 text-sm">
-              <div className="flex size-8 items-center justify-center rounded-lg bg-primary/10">
+              <div className="flex size-8 items-center justify-center rounded-lg bg-primary/10 border border-primary/15">
                 <Heart className="size-4 text-primary" />
               </div>
               Looking for: {profile.lookingFor}
@@ -142,7 +142,7 @@ export default async function ProfilePage() {
           )}
           {profile.relationshipGoal && (
             <div className="flex items-center gap-3 text-sm">
-              <div className="flex size-8 items-center justify-center rounded-lg bg-primary/10">
+              <div className="flex size-8 items-center justify-center rounded-lg bg-primary/10 border border-primary/15">
                 <Target className="size-4 text-primary" />
               </div>
               Goal: {profile.relationshipGoal}
@@ -150,7 +150,7 @@ export default async function ProfilePage() {
           )}
           {(profile.ageMin || profile.ageMax) && (
             <div className="flex items-center gap-3 text-sm">
-              <div className="flex size-8 items-center justify-center rounded-lg bg-primary/10">
+              <div className="flex size-8 items-center justify-center rounded-lg bg-primary/10 border border-primary/15">
                 <Calendar className="size-4 text-primary" />
               </div>
               Age range: {profile.ageMin ?? 18} - {profile.ageMax ?? 99}
@@ -158,7 +158,7 @@ export default async function ProfilePage() {
           )}
           {profile.maxDistance && (
             <div className="flex items-center gap-3 text-sm">
-              <div className="flex size-8 items-center justify-center rounded-lg bg-primary/10">
+              <div className="flex size-8 items-center justify-center rounded-lg bg-primary/10 border border-primary/15">
                 <Ruler className="size-4 text-primary" />
               </div>
               Max distance: {profile.maxDistance} miles

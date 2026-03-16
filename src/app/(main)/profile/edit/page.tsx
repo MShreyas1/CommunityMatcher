@@ -326,7 +326,7 @@ export default function ProfileEditPage() {
           <h2 className="text-lg font-semibold tracking-tight">Photos</h2>
           <div className="flex items-center justify-center rounded-2xl border-2 border-dashed border-border/50 p-10 bg-muted/20 transition-colors duration-200 hover:bg-muted/30">
             <div className="text-center">
-              <div className="mx-auto flex size-12 items-center justify-center rounded-xl bg-primary/10 mb-3">
+              <div className="mx-auto flex size-12 items-center justify-center rounded-xl bg-primary/10 border border-primary/15 mb-3">
                 <ImagePlus className="size-6 text-primary" />
               </div>
               <p className="text-sm font-medium text-muted-foreground">
@@ -341,7 +341,7 @@ export default function ProfileEditPage() {
 
         <Button
           type="submit"
-          className="w-full h-12 rounded-xl gradient-primary border-0 font-semibold text-base shadow-md hover:shadow-lg transition-all duration-300 hover:scale-[1.01]"
+          className="w-full h-12 rounded-xl gradient-primary border-0 font-semibold text-base shadow-md hover:shadow-lg transition-all duration-300 hover:scale-[1.01] glow hover:glow-lg"
           disabled={isPending}
         >
           {isPending ? (

@@ -74,9 +74,9 @@ export default function RegisterPage() {
   }
 
   return (
-    <Card className="w-full max-w-md card-shadow-lg border-border/50 rounded-2xl overflow-hidden">
+    <Card className="w-full max-w-md card-shadow-lg border-primary/10 rounded-2xl overflow-hidden glow-sm">
       <div className="flex flex-col items-center pt-10 pb-2">
-        <div className="flex size-14 items-center justify-center rounded-2xl gradient-primary mb-4">
+        <div className="flex size-14 items-center justify-center rounded-2xl gradient-primary mb-4 glow">
           <Heart className="size-7 text-white" />
         </div>
         <h1 className="text-2xl font-bold tracking-tight">Create your account</h1>
@@ -94,7 +94,7 @@ export default function RegisterPage() {
               id="name"
               type="text"
               placeholder="Your name"
-              className="h-11 rounded-xl bg-muted/50 border-border/50 focus:bg-background transition-colors duration-200"
+              className="h-11 rounded-xl bg-muted/50 border-border/50 focus:border-primary/40 focus:bg-background transition-all duration-200"
               {...register("name")}
             />
             {errors.name && (
@@ -111,7 +111,7 @@ export default function RegisterPage() {
               id="email"
               type="email"
               placeholder="you@example.com"
-              className="h-11 rounded-xl bg-muted/50 border-border/50 focus:bg-background transition-colors duration-200"
+              className="h-11 rounded-xl bg-muted/50 border-border/50 focus:border-primary/40 focus:bg-background transition-all duration-200"
               {...register("email")}
             />
             {errors.email && (
@@ -128,7 +128,7 @@ export default function RegisterPage() {
               id="password"
               type="password"
               placeholder="At least 8 characters"
-              className="h-11 rounded-xl bg-muted/50 border-border/50 focus:bg-background transition-colors duration-200"
+              className="h-11 rounded-xl bg-muted/50 border-border/50 focus:border-primary/40 focus:bg-background transition-all duration-200"
               {...register("password")}
             />
             {errors.password && (
@@ -145,7 +145,7 @@ export default function RegisterPage() {
               id="confirmPassword"
               type="password"
               placeholder="Confirm your password"
-              className="h-11 rounded-xl bg-muted/50 border-border/50 focus:bg-background transition-colors duration-200"
+              className="h-11 rounded-xl bg-muted/50 border-border/50 focus:border-primary/40 focus:bg-background transition-all duration-200"
               {...register("confirmPassword")}
             />
             {errors.confirmPassword && (
@@ -156,7 +156,7 @@ export default function RegisterPage() {
           </div>
           <Button
             type="submit"
-            className="w-full h-11 rounded-xl gradient-primary border-0 font-semibold text-base shadow-md hover:shadow-lg transition-all duration-300 hover:scale-[1.01]"
+            className="w-full h-11 rounded-xl gradient-primary border-0 font-semibold text-base shadow-md hover:shadow-lg transition-all duration-300 hover:scale-[1.01] glow hover:glow-lg"
             disabled={isLoading}
           >
             {isLoading ? "Creating account..." : "Create Account"}

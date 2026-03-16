@@ -65,9 +65,11 @@ model User {
   ownedCircle  CommunityMember[] @relation("CircleOwner")
   vettingFor   CommunityMember[] @relation("CircleVetter")
 
-  // Swipes & Matches
-  swipesMade     Swipe[] @relation("Swiper")
-  swipesReceived Swipe[] @relation("Swiped")
+  // Suggestions
+  suggestionsReceived Suggestion[] @relation("suggestionsReceived")
+  suggestionsAbout    Suggestion[] @relation("suggestionsAbout")
+
+  // Matches
   matchesAsUser1 Match[] @relation("MatchUser1")
   matchesAsUser2 Match[] @relation("MatchUser2")
 
@@ -123,7 +125,7 @@ model CommunityMember {
 
   owner  User @relation("CircleOwner", fields: [ownerId], references: [id], onDelete: Cascade)
   vetter User @relation("CircleVetter", fields: [vetterId], references: [id], onDelete: Cascade)
-  votes  VettingVote[]
+  votes  SuggestionVote[]
 
   @@unique([ownerId, vetterId])
 }
@@ -141,19 +143,43 @@ enum CommunityMemberStatus {
   DECLINED
 }
 
-model VettingVote {
-  id                String @id @default(cuid())
+// ─── Suggestion Flow ───
+
+model Suggestion {
+  id             String           @id @default(cuid())
+  ownerId        String
+  suggestedId    String
+  status         SuggestionStatus @default(PENDING)
+  communityScore Float            @default(0)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  owner     User              @relation("suggestionsReceived", fields: [ownerId], references: [id], onDelete: Cascade)
+  suggested User              @relation("suggestionsAbout", fields: [suggestedId], references: [id], onDelete: Cascade)
+  votes     SuggestionVote[]
+  match     Match?
+
+  @@unique([ownerId, suggestedId])
+}
+
+enum SuggestionStatus {
+  PENDING
+  APPROVED
+  PASSED
+}
+
+model SuggestionVote {
+  id                String   @id @default(cuid())
+  suggestionId      String
   communityMemberId String
-  matchId           String
   vote              VoteType
-  comment           String? @db.Text
+  comment           String?  @db.Text
+  createdAt         DateTime @default(now())
 
-  createdAt DateTime @default(now())
-
+  suggestion      Suggestion      @relation(fields: [suggestionId], references: [id], onDelete: Cascade)
   communityMember CommunityMember @relation(fields: [communityMemberId], references: [id], onDelete: Cascade)
-  match           Match           @relation(fields: [matchId], references: [id], onDelete: Cascade)
 
-  @@unique([communityMemberId, matchId])
+  @@unique([communityMemberId, suggestionId])
 }
 
 enum VoteType {
@@ -162,24 +188,7 @@ enum VoteType {
   NEUTRAL
 }
 
-model Swipe {
-  id       String    @id @default(cuid())
-  swiperId String
-  swipedId String
-  action   SwipeAction
-
-  createdAt DateTime @default(now())
-
-  swiper User @relation("Swiper", fields: [swiperId], references: [id], onDelete: Cascade)
-  swiped User @relation("Swiped", fields: [swipedId], references: [id], onDelete: Cascade)
-
-  @@unique([swiperId, swipedId])
-}
-
-enum SwipeAction {
-  ACCEPT
-  PASS
-}
+// ─── Matches & Conversations ───
 
 model Match {
   id             String      @id @default(cuid())
@@ -187,20 +196,20 @@ model Match {
   user2Id        String
   status         MatchStatus @default(ACTIVE)
   communityScore Float       @default(0)
+  suggestionId   String?     @unique
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   user1        User          @relation("MatchUser1", fields: [user1Id], references: [id], onDelete: Cascade)
   user2        User          @relation("MatchUser2", fields: [user2Id], references: [id], onDelete: Cascade)
+  suggestion   Suggestion?   @relation(fields: [suggestionId], references: [id], onDelete: SetNull)
   conversation Conversation?
-  votes        VettingVote[]
 
   @@unique([user1Id, user2Id])
 }
 
 enum MatchStatus {
-  PENDING_VETTING
   ACTIVE
   UNMATCHED
 }

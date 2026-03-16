@@ -4,7 +4,7 @@ import { getCommunityMembers } from "@/actions/community";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Users, ClipboardCheck, Eye } from "lucide-react";
+import { Users, Eye, UserPlus as UserPlusIcon } from "lucide-react";
 import { InviteForm } from "./invite-form";
 import { PendingInvitations } from "./pending-invitations";
 
@@ -26,9 +26,6 @@ export default async function CommunityPage() {
 
   const members = result.members ?? [];
   const vettingFor = result.vettingFor ?? [];
-
-  const isOwner = members.length > 0 || true; // Always show owner section so they can invite
-  const isVetter = vettingFor.length > 0;
 
   const pendingInvitations = vettingFor.filter(
     (v: { status: string }) => v.status === "PENDING"
@@ -64,7 +61,7 @@ export default async function CommunityPage() {
           {members.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-6">
               No community members yet. Invite friends and family to join your
-              circle and help vet your matches!
+              circle and help find your matches!
             </p>
           ) : (
             <div className="divide-y">
@@ -130,8 +127,7 @@ export default async function CommunityPage() {
       </Card>
 
       {/* ============ VETTER SECTION ============ */}
-      {/* Vetters only see who they're vetting for and a link to the queue */}
-      {isVetter && acceptedVettingFor.length > 0 && (
+      {acceptedVettingFor.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
@@ -178,16 +174,16 @@ export default async function CommunityPage() {
                         {membership.owner.name ?? "someone"}
                       </span>
                     </p>
+                    <Link href={`/community/suggest/${membership.owner.id}`}>
+                      <Badge variant="secondary" className="gap-1 cursor-pointer">
+                        <UserPlusIcon className="size-3" />
+                        Suggest profiles
+                      </Badge>
+                    </Link>
                   </div>
                 );
               }
             )}
-            <Link href="/community/vetting">
-              <Badge variant="secondary" className="gap-1 cursor-pointer mt-2">
-                <ClipboardCheck className="size-3" />
-                Go to Vetting Queue
-              </Badge>
-            </Link>
           </CardContent>
         </Card>
       )}

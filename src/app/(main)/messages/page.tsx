@@ -31,7 +31,7 @@ export default async function MessagesPage() {
 
       {conversations.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-24 text-center">
-          <div className="rounded-2xl bg-gradient-to-br from-primary/10 to-primary/5 p-8 mb-6">
+          <div className="rounded-2xl gradient-primary-subtle border border-primary/15 p-8 mb-6 glow-sm">
             <Sparkles className="size-12 text-primary" />
           </div>
           <h2 className="text-xl font-semibold mb-2 tracking-tight">
