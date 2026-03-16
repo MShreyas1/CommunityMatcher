@@ -4,8 +4,6 @@ import { z } from "zod";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { rateLimit } from "@/lib/rate-limit";
-import { generateVerificationToken } from "@/lib/tokens";
-import { sendVerificationEmail } from "@/lib/email";
 
 const registerSchema = z.object({
   name: z.string().min(1, "Name is required").max(100).trim(),
@@ -63,14 +61,6 @@ export async function register(formData: FormData) {
       password: hashedPassword,
     },
   });
-
-  // Send verification email
-  try {
-    const verificationToken = await generateVerificationToken(email);
-    await sendVerificationEmail(email, verificationToken.token);
-  } catch {
-    // Don't block registration if email fails — user can resend later
-  }
 
   return { success: true, userId: user.id };
 }

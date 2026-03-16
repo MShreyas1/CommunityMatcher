@@ -142,16 +142,6 @@ export async function createSuggestion(
     return { error: "Not authenticated" };
   }
 
-  // Email verification check
-  const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    select: { emailVerified: true },
-  });
-
-  if (!user?.emailVerified) {
-    return { error: "Please verify your email before creating suggestions." };
-  }
-
   // Rate limit: 10 per minute
   const rateLimitResult = rateLimit({
     key: `create-suggestion:${session.user.id}`,
