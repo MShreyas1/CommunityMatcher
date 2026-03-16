@@ -159,7 +159,7 @@ export function ChatWindow({
   }, [conversationId]);
 
   return (
-    <div className="flex flex-col h-[calc(100vh-4rem)] md:h-[calc(100vh-4rem)] max-w-lg mx-auto -mt-6">
+    <div className="flex flex-col h-[calc(100vh-8.5rem)] md:h-[calc(100vh-5.5rem)] max-w-lg mx-auto -mt-6">
       {/* Header */}
       <div className="flex items-center gap-3 glass border-b border-border/30 px-3 py-3.5 shrink-0 rounded-b-xl">
         <Link href="/messages">

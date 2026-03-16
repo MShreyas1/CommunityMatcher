@@ -7,7 +7,7 @@ import { auth } from "@/lib/auth";
 
 const sendMessageSchema = z.object({
   conversationId: z.string().min(1),
-  content: z.string().min(1, "Message cannot be empty"),
+  content: z.string().min(1, "Message cannot be empty").max(2000),
 });
 
 export async function sendMessage(conversationId: string, content: string) {
