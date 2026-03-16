@@ -8,6 +8,58 @@ import { setPrimaryPhoto } from "@/actions/profile";
 import { toast } from "sonner";
 import { useDropzone } from "@uploadthing/react";
 
+const MAX_DIMENSION = 1200;
+const JPEG_QUALITY = 0.8;
+
+function compressImage(file: File): Promise<File> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      let { width, height } = img;
+
+      // Only resize if larger than max
+      if (width > MAX_DIMENSION || height > MAX_DIMENSION) {
+        if (width > height) {
+          height = Math.round(height * (MAX_DIMENSION / width));
+          width = MAX_DIMENSION;
+        } else {
+          width = Math.round(width * (MAX_DIMENSION / height));
+          height = MAX_DIMENSION;
+        }
+      }
+
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        resolve(file);
+        return;
+      }
+
+      ctx.drawImage(img, 0, 0, width, height);
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) {
+            resolve(file);
+            return;
+          }
+          const compressed = new File([blob], file.name.replace(/\.\w+$/, ".jpg"), {
+            type: "image/jpeg",
+            lastModified: Date.now(),
+          });
+          resolve(compressed);
+        },
+        "image/jpeg",
+        JPEG_QUALITY
+      );
+    };
+    img.onerror = () => reject(new Error("Failed to load image"));
+    img.src = URL.createObjectURL(file);
+  });
+}
+
 interface Photo {
   id: string;
   url: string;
@@ -41,13 +93,19 @@ export function PhotoUpload({ photos, onPhotosChange }: PhotoUploadProps) {
   });
 
   const onDrop = useCallback(
-    (acceptedFiles: File[]) => {
+    async (acceptedFiles: File[]) => {
       if (photos.length + acceptedFiles.length > 6) {
         toast.error("Maximum 6 photos allowed");
         return;
       }
       setIsUploading(true);
-      startUpload(acceptedFiles);
+      try {
+        const compressed = await Promise.all(acceptedFiles.map(compressImage));
+        startUpload(compressed);
+      } catch {
+        toast.error("Failed to process images");
+        setIsUploading(false);
+      }
     },
     [photos.length, startUpload]
   );
