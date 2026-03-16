@@ -16,18 +16,25 @@ export const authConfig: NextAuthConfig = {
         try {
           if (!credentials?.email || !credentials?.password) return null;
 
+          const email = (credentials.email as string).trim().toLowerCase();
           const user = await prisma.user.findUnique({
-            where: { email: credentials.email as string },
+            where: { email },
           });
 
-          if (!user || !user.password) return null;
+          if (!user || !user.password) {
+            console.error("[AUTH] No user or no password for:", email);
+            return null;
+          }
 
           const isValid = await bcrypt.compare(
             credentials.password as string,
             user.password
           );
 
-          if (!isValid) return null;
+          if (!isValid) {
+            console.error("[AUTH] Invalid password for:", email);
+            return null;
+          }
 
           return {
             id: user.id,
