@@ -24,13 +24,13 @@ export function EmailVerificationBanner() {
   }
 
   return (
-    <div className="relative bg-amber-500/10 border border-amber-500/20 rounded-xl px-4 py-3 mb-4 flex items-center gap-3">
-      <AlertTriangle className="size-5 text-amber-500 shrink-0" />
-      <p className="text-sm text-amber-200 flex-1">
+    <div className="relative bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mb-4 flex items-center gap-3">
+      <AlertTriangle className="size-5 text-amber-600 shrink-0" />
+      <p className="text-sm text-amber-800 flex-1">
         Your email is not verified. Please check your inbox or{" "}
         <Button
           variant="link"
-          className="text-amber-400 hover:text-amber-300 p-0 h-auto font-semibold"
+          className="text-amber-700 hover:text-amber-900 p-0 h-auto font-semibold"
           onClick={handleResend}
           disabled={isPending}
         >
@@ -40,7 +40,7 @@ export function EmailVerificationBanner() {
       </p>
       <button
         onClick={() => setDismissed(true)}
-        className="text-amber-500/60 hover:text-amber-500 transition-colors"
+        className="text-amber-400 hover:text-amber-600 transition-colors"
       >
         <X className="size-4" />
       </button>
