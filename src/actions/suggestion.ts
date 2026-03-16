@@ -106,7 +106,14 @@ export async function getSuggestFeed(ownerId: string) {
     take: 20,
   });
 
-  return { success: true, profiles, membershipId: membership.id };
+  // Get the owner's checklist items so vetters can fill them out
+  const checklistItems = await prisma.checklistItem.findMany({
+    where: { userId: ownerId },
+    orderBy: { order: "asc" },
+    select: { id: true, label: true },
+  });
+
+  return { success: true, profiles, membershipId: membership.id, checklistItems };
 }
 
 const createSuggestionSchema = z.object({
@@ -114,17 +121,20 @@ const createSuggestionSchema = z.object({
   suggestedId: z.string().min(1),
   vote: z.enum(["APPROVE", "DENY", "NEUTRAL"]),
   comment: z.string().optional(),
+  checkedItemIds: z.array(z.string()).optional(),
 });
 
 /**
  * Vetter suggests a profile to a circle owner.
  * Creates or finds existing Suggestion, adds a SuggestionVote, recalculates community score.
+ * Optionally records which checklist items the vetter checked.
  */
 export async function createSuggestion(
   ownerId: string,
   suggestedId: string,
   vote: "APPROVE" | "DENY" | "NEUTRAL",
-  comment?: string
+  comment?: string,
+  checkedItemIds?: string[]
 ) {
   const session = await auth();
   if (!session?.user?.id) {
@@ -136,6 +146,7 @@ export async function createSuggestion(
     suggestedId,
     vote,
     comment,
+    checkedItemIds,
   });
   if (!parsed.success) {
     return { error: parsed.error.flatten().fieldErrors };
@@ -181,7 +192,7 @@ export async function createSuggestion(
   }
 
   // Create the vote
-  await prisma.suggestionVote.create({
+  const newVote = await prisma.suggestionVote.create({
     data: {
       suggestionId: suggestion.id,
       communityMemberId: membership.id,
@@ -189,6 +200,16 @@ export async function createSuggestion(
       comment: parsed.data.comment,
     },
   });
+
+  // Create checklist responses for checked items
+  if (parsed.data.checkedItemIds && parsed.data.checkedItemIds.length > 0) {
+    await prisma.checklistResponse.createMany({
+      data: parsed.data.checkedItemIds.map((itemId) => ({
+        suggestionVoteId: newVote.id,
+        checklistItemId: itemId,
+      })),
+    });
+  }
 
   // Recalculate community score
   const allVotes = await prisma.suggestionVote.findMany({
@@ -259,6 +280,13 @@ export async function getOwnerFeed() {
                   name: true,
                   image: true,
                 },
+              },
+            },
+          },
+          checklistResponses: {
+            include: {
+              checklistItem: {
+                select: { id: true, label: true },
               },
             },
           },

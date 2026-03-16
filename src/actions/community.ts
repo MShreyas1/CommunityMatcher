@@ -156,5 +156,64 @@ export async function getCommunityMembers() {
     orderBy: { createdAt: "desc" },
   });
 
-  return { success: true, members, vettingFor };
+  // Owner's checklist items
+  const checklistItems = await prisma.checklistItem.findMany({
+    where: { userId: session.user.id },
+    orderBy: { order: "asc" },
+  });
+
+  return { success: true, members, vettingFor, checklistItems };
+}
+
+const addChecklistItemSchema = z.object({
+  label: z.string().min(1).max(100),
+});
+
+export async function addChecklistItem(label: string) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return { error: "Not authenticated" };
+  }
+
+  const parsed = addChecklistItemSchema.safeParse({ label });
+  if (!parsed.success) {
+    return { error: parsed.error.flatten().fieldErrors };
+  }
+
+  const count = await prisma.checklistItem.count({
+    where: { userId: session.user.id },
+  });
+
+  await prisma.checklistItem.create({
+    data: {
+      userId: session.user.id,
+      label: parsed.data.label,
+      order: count,
+    },
+  });
+
+  revalidatePath("/community");
+  return { success: true };
+}
+
+export async function removeChecklistItem(itemId: string) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return { error: "Not authenticated" };
+  }
+
+  const item = await prisma.checklistItem.findUnique({
+    where: { id: itemId },
+  });
+
+  if (!item || item.userId !== session.user.id) {
+    return { error: "Item not found" };
+  }
+
+  await prisma.checklistItem.delete({
+    where: { id: itemId },
+  });
+
+  revalidatePath("/community");
+  return { success: true };
 }

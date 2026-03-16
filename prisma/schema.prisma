@@ -74,6 +74,9 @@ model User {
   matchesAsUser1 Match[] @relation("MatchUser1")
   matchesAsUser2 Match[] @relation("MatchUser2")
 
+  // Checklist
+  checklistItems ChecklistItem[]
+
   // Messages
   conversationParticipants ConversationParticipant[]
   messagesSent             Message[]
@@ -131,6 +134,18 @@ model CommunityMember {
   @@unique([ownerId, vetterId])
 }
 
+model ChecklistItem {
+  id      String @id @default(cuid())
+  userId  String
+  label   String
+  order   Int    @default(0)
+
+  createdAt DateTime @default(now())
+
+  user      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  responses ChecklistResponse[]
+}
+
 enum CommunityRole {
   FRIEND
   FAMILY
@@ -177,10 +192,22 @@ model SuggestionVote {
   comment           String?  @db.Text
   createdAt         DateTime @default(now())
 
-  suggestion      Suggestion      @relation(fields: [suggestionId], references: [id], onDelete: Cascade)
-  communityMember CommunityMember @relation(fields: [communityMemberId], references: [id], onDelete: Cascade)
+  suggestion         Suggestion          @relation(fields: [suggestionId], references: [id], onDelete: Cascade)
+  communityMember    CommunityMember     @relation(fields: [communityMemberId], references: [id], onDelete: Cascade)
+  checklistResponses ChecklistResponse[]
 
   @@unique([communityMemberId, suggestionId])
+}
+
+model ChecklistResponse {
+  id              String @id @default(cuid())
+  suggestionVoteId String
+  checklistItemId  String
+
+  suggestionVote SuggestionVote @relation(fields: [suggestionVoteId], references: [id], onDelete: Cascade)
+  checklistItem  ChecklistItem  @relation(fields: [checklistItemId], references: [id], onDelete: Cascade)
+
+  @@unique([suggestionVoteId, checklistItemId])
 }
 
 enum VoteType {

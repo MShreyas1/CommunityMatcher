@@ -1,13 +1,21 @@
 "use client";
 
 import Image from "next/image";
-import { MapPin, Briefcase, Shield, Check, X, Minus } from "lucide-react";
+import { MapPin, Briefcase, Shield, Check, X, Minus, ClipboardCheck } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { CommunityScoreBadge } from "./community-score-badge";
+
+interface ChecklistResponseInfo {
+  checklistItem: {
+    id: string;
+    label: string;
+  };
+}
 
 interface VoteInfo {
   vote: string;
   comment: string | null;
+  checklistResponses?: ChecklistResponseInfo[];
   communityMember: {
     role: string;
     vetter: {
@@ -138,6 +146,19 @@ export function SuggestionCard({ suggestion }: SuggestionCardProps) {
                       {vote.communityMember.role.toLowerCase()}
                     </Badge>
                   </div>
+                  {vote.checklistResponses && vote.checklistResponses.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {vote.checklistResponses.map((cr) => (
+                        <span
+                          key={cr.checklistItem.id}
+                          className="inline-flex items-center gap-0.5 rounded-full bg-green-500/10 text-green-700 dark:text-green-400 px-2 py-0.5 text-[0.6rem] font-medium"
+                        >
+                          <ClipboardCheck className="size-2.5" />
+                          {cr.checklistItem.label}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                   {vote.comment && (
                     <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
                       &ldquo;{vote.comment}&rdquo;

@@ -14,8 +14,10 @@ async function main() {
   await prisma.conversationParticipant.deleteMany();
   await prisma.conversation.deleteMany();
   await prisma.match.deleteMany();
+  await prisma.checklistResponse.deleteMany();
   await prisma.suggestionVote.deleteMany();
   await prisma.suggestion.deleteMany();
+  await prisma.checklistItem.deleteMany();
   await prisma.communityMember.deleteMany();
   await prisma.photo.deleteMany();
   await prisma.profile.deleteMany();
@@ -83,97 +85,126 @@ async function main() {
 
   console.log("Created 6 users");
 
-  // Create profiles
-  await prisma.profile.createMany({
-    data: [
-      {
-        userId: alice.id,
-        displayName: "Alice",
-        bio: "Software engineer who loves hiking and board games. Looking for someone to explore coffee shops with!",
-        dateOfBirth: new Date("1995-03-15"),
-        gender: "female",
-        location: "San Francisco, CA",
-        occupation: "Software Engineer",
-        lookingFor: "men",
-        ageMin: 25,
-        ageMax: 35,
-        maxDistance: 30,
-        relationshipGoal: "long-term",
-      },
-      {
-        userId: bob.id,
-        displayName: "Bob",
-        bio: "Chef by day, musician by night. I make a mean pasta and play guitar poorly but enthusiastically.",
-        dateOfBirth: new Date("1993-07-22"),
-        gender: "male",
-        location: "San Francisco, CA",
-        occupation: "Chef",
-        lookingFor: "women",
-        ageMin: 24,
-        ageMax: 34,
-        maxDistance: 25,
-        relationshipGoal: "long-term",
-      },
-      {
-        userId: carol.id,
-        displayName: "Carol",
-        bio: "Architect with a passion for sustainable design. Weekend warrior - you'll find me rock climbing or at a farmers market.",
-        dateOfBirth: new Date("1996-11-08"),
-        gender: "female",
-        location: "Oakland, CA",
-        occupation: "Architect",
-        lookingFor: "men",
-        ageMin: 26,
-        ageMax: 38,
-        maxDistance: 40,
-        relationshipGoal: "long-term",
-      },
-      {
-        userId: dave.id,
-        displayName: "Dave",
-        bio: "Data scientist and amateur astronomer. I'll bore you with space facts and make up for it with great cocktails.",
-        dateOfBirth: new Date("1992-01-30"),
-        gender: "male",
-        location: "Berkeley, CA",
-        occupation: "Data Scientist",
-        lookingFor: "women",
-        ageMin: 25,
-        ageMax: 35,
-        maxDistance: 35,
-        relationshipGoal: "long-term",
-      },
-      {
-        userId: emma.id,
-        displayName: "Emma",
-        bio: "Product designer who paints on weekends. Dog mom to a golden retriever named Pixel. Always up for trying new restaurants.",
-        dateOfBirth: new Date("1994-06-12"),
-        gender: "female",
-        location: "San Francisco, CA",
-        occupation: "Product Designer",
-        lookingFor: "everyone",
-        ageMin: 24,
-        ageMax: 36,
-        maxDistance: 30,
-        relationshipGoal: "short-term",
-      },
-      {
-        userId: frank.id,
-        displayName: "Frank",
-        bio: "Teacher and marathon runner. I believe in lifelong learning and early morning runs. Let's grab brunch after a 10K?",
-        dateOfBirth: new Date("1991-09-05"),
-        gender: "male",
-        location: "San Jose, CA",
-        occupation: "High School Teacher",
-        lookingFor: "women",
-        ageMin: 25,
-        ageMax: 38,
-        maxDistance: 50,
-        relationshipGoal: "long-term",
-      },
-    ],
-  });
+  // Create profiles with photos
+  const seedProfiles = [
+    {
+      userId: alice.id,
+      displayName: "Alice",
+      bio: "Software engineer who loves hiking and board games. Looking for someone to explore coffee shops with!",
+      dateOfBirth: new Date("1995-03-15"),
+      gender: "female",
+      location: "San Francisco, CA",
+      occupation: "Software Engineer",
+      lookingFor: "men",
+      ageMin: 25,
+      ageMax: 35,
+      maxDistance: 30,
+      relationshipGoal: "long-term",
+      _photos: [
+        { url: "https://randomuser.me/api/portraits/women/44.jpg", key: "seed-alice-1", order: 0, isPrimary: true },
+        { url: "https://randomuser.me/api/portraits/women/45.jpg", key: "seed-alice-2", order: 1, isPrimary: false },
+      ],
+    },
+    {
+      userId: bob.id,
+      displayName: "Bob",
+      bio: "Chef by day, musician by night. I make a mean pasta and play guitar poorly but enthusiastically.",
+      dateOfBirth: new Date("1993-07-22"),
+      gender: "male",
+      location: "San Francisco, CA",
+      occupation: "Chef",
+      lookingFor: "women",
+      ageMin: 24,
+      ageMax: 34,
+      maxDistance: 25,
+      relationshipGoal: "long-term",
+      _photos: [
+        { url: "https://randomuser.me/api/portraits/men/32.jpg", key: "seed-bob-1", order: 0, isPrimary: true },
+        { url: "https://randomuser.me/api/portraits/men/34.jpg", key: "seed-bob-2", order: 1, isPrimary: false },
+      ],
+    },
+    {
+      userId: carol.id,
+      displayName: "Carol",
+      bio: "Architect with a passion for sustainable design. Weekend warrior - you'll find me rock climbing or at a farmers market.",
+      dateOfBirth: new Date("1996-11-08"),
+      gender: "female",
+      location: "Oakland, CA",
+      occupation: "Architect",
+      lookingFor: "men",
+      ageMin: 26,
+      ageMax: 38,
+      maxDistance: 40,
+      relationshipGoal: "long-term",
+      _photos: [
+        { url: "https://randomuser.me/api/portraits/women/67.jpg", key: "seed-carol-1", order: 0, isPrimary: true },
+        { url: "https://randomuser.me/api/portraits/women/68.jpg", key: "seed-carol-2", order: 1, isPrimary: false },
+      ],
+    },
+    {
+      userId: dave.id,
+      displayName: "Dave",
+      bio: "Data scientist and amateur astronomer. I'll bore you with space facts and make up for it with great cocktails.",
+      dateOfBirth: new Date("1992-01-30"),
+      gender: "male",
+      location: "Berkeley, CA",
+      occupation: "Data Scientist",
+      lookingFor: "women",
+      ageMin: 25,
+      ageMax: 35,
+      maxDistance: 35,
+      relationshipGoal: "long-term",
+      _photos: [
+        { url: "https://randomuser.me/api/portraits/men/75.jpg", key: "seed-dave-1", order: 0, isPrimary: true },
+        { url: "https://randomuser.me/api/portraits/men/76.jpg", key: "seed-dave-2", order: 1, isPrimary: false },
+      ],
+    },
+    {
+      userId: emma.id,
+      displayName: "Emma",
+      bio: "Product designer who paints on weekends. Dog mom to a golden retriever named Pixel. Always up for trying new restaurants.",
+      dateOfBirth: new Date("1994-06-12"),
+      gender: "female",
+      location: "San Francisco, CA",
+      occupation: "Product Designer",
+      lookingFor: "everyone",
+      ageMin: 24,
+      ageMax: 36,
+      maxDistance: 30,
+      relationshipGoal: "short-term",
+      _photos: [
+        { url: "https://randomuser.me/api/portraits/women/21.jpg", key: "seed-emma-1", order: 0, isPrimary: true },
+        { url: "https://randomuser.me/api/portraits/women/23.jpg", key: "seed-emma-2", order: 1, isPrimary: false },
+      ],
+    },
+    {
+      userId: frank.id,
+      displayName: "Frank",
+      bio: "Teacher and marathon runner. I believe in lifelong learning and early morning runs. Let's grab brunch after a 10K?",
+      dateOfBirth: new Date("1991-09-05"),
+      gender: "male",
+      location: "San Jose, CA",
+      occupation: "High School Teacher",
+      lookingFor: "women",
+      ageMin: 25,
+      ageMax: 38,
+      maxDistance: 50,
+      relationshipGoal: "long-term",
+      _photos: [
+        { url: "https://randomuser.me/api/portraits/men/86.jpg", key: "seed-frank-1", order: 0, isPrimary: true },
+        { url: "https://randomuser.me/api/portraits/men/88.jpg", key: "seed-frank-2", order: 1, isPrimary: false },
+      ],
+    },
+  ];
 
-  console.log("Created 6 profiles");
+  for (const { _photos, ...profileFields } of seedProfiles) {
+    const created = await prisma.profile.create({ data: profileFields });
+    await prisma.photo.createMany({
+      data: _photos.map((p) => ({ ...p, profileId: created.id })),
+    });
+  }
+
+  console.log("Created 6 profiles with photos");
 
   // Create community circles
   // Alice's circle: Bob and Carol are her vetters
@@ -226,6 +257,31 @@ async function main() {
 
   console.log("Created community circles");
 
+  // ─── Checklist Items ───
+  // Alice defines qualities she cares about
+  const clHumor = await prisma.checklistItem.create({
+    data: { userId: alice.id, label: "Good sense of humor", order: 0 },
+  });
+  const clAmbitious = await prisma.checklistItem.create({
+    data: { userId: alice.id, label: "Ambitious", order: 1 },
+  });
+  const clKind = await prisma.checklistItem.create({
+    data: { userId: alice.id, label: "Kind to others", order: 2 },
+  });
+  const clOutdoorsy = await prisma.checklistItem.create({
+    data: { userId: alice.id, label: "Enjoys the outdoors", order: 3 },
+  });
+
+  // Dave has a couple checklist items too
+  await prisma.checklistItem.create({
+    data: { userId: dave.id, label: "Creative", order: 0 },
+  });
+  await prisma.checklistItem.create({
+    data: { userId: dave.id, label: "Adventurous", order: 1 },
+  });
+
+  console.log("Created checklist items");
+
   // ─── Suggestions ───
 
   // Bob and Carol both suggest Dave to Alice (APPROVE + comments) → consolidated Suggestion
@@ -238,7 +294,7 @@ async function main() {
     },
   });
 
-  await prisma.suggestionVote.create({
+  const bobVoteDave = await prisma.suggestionVote.create({
     data: {
       suggestionId: suggestionDaveForAlice.id,
       communityMemberId: aliceBobMember.id,
@@ -247,13 +303,30 @@ async function main() {
     },
   });
 
-  await prisma.suggestionVote.create({
+  // Bob checked: humor, kind, outdoorsy
+  await prisma.checklistResponse.createMany({
+    data: [
+      { suggestionVoteId: bobVoteDave.id, checklistItemId: clHumor.id },
+      { suggestionVoteId: bobVoteDave.id, checklistItemId: clKind.id },
+      { suggestionVoteId: bobVoteDave.id, checklistItemId: clOutdoorsy.id },
+    ],
+  });
+
+  const carolVoteDave = await prisma.suggestionVote.create({
     data: {
       suggestionId: suggestionDaveForAlice.id,
       communityMemberId: aliceCarolMember.id,
       vote: "APPROVE",
       comment: "I think you two would really hit it off. He's into similar stuff.",
     },
+  });
+
+  // Carol checked: ambitious, outdoorsy
+  await prisma.checklistResponse.createMany({
+    data: [
+      { suggestionVoteId: carolVoteDave.id, checklistItemId: clAmbitious.id },
+      { suggestionVoteId: carolVoteDave.id, checklistItemId: clOutdoorsy.id },
+    ],
   });
 
   // Bob suggests Frank to Alice (NEUTRAL) → PENDING suggestion

@@ -21,9 +21,15 @@ interface SuggestProfile {
   user: { id: string; name: string | null };
 }
 
+interface ChecklistItem {
+  id: string;
+  label: string;
+}
+
 interface SuggestStackProps {
   profiles: SuggestProfile[];
   ownerId: string;
+  checklistItems?: ChecklistItem[];
 }
 
 function calculateAge(dateOfBirth: Date | string): number {
@@ -37,9 +43,10 @@ function calculateAge(dateOfBirth: Date | string): number {
   return age;
 }
 
-export function SuggestStack({ profiles, ownerId }: SuggestStackProps) {
+export function SuggestStack({ profiles, ownerId, checklistItems = [] }: SuggestStackProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [comment, setComment] = useState("");
+  const [checkedIds, setCheckedIds] = useState<Set<string>>(new Set());
   const [isPending, startTransition] = useTransition();
 
   const currentProfile = profiles[currentIndex];
@@ -52,7 +59,8 @@ export function SuggestStack({ profiles, ownerId }: SuggestStackProps) {
         ownerId,
         currentProfile.userId,
         vote,
-        comment.trim() || undefined
+        comment.trim() || undefined,
+        checkedIds.size > 0 ? Array.from(checkedIds) : undefined
       );
 
       if (result.error) {
@@ -66,6 +74,7 @@ export function SuggestStack({ profiles, ownerId }: SuggestStackProps) {
 
       toast.success("Suggestion submitted!");
       setComment("");
+      setCheckedIds(new Set());
       setCurrentIndex((prev) => prev + 1);
     });
   }
@@ -134,6 +143,36 @@ export function SuggestStack({ profiles, ownerId }: SuggestStackProps) {
           </div>
         )}
       </div>
+
+      {/* Checklist (optional) */}
+      {checklistItems.length > 0 && (
+        <div className="w-full max-w-sm space-y-2">
+          <p className="text-xs font-medium text-muted-foreground">Checklist (optional)</p>
+          <div className="space-y-1.5">
+            {checklistItems.map((item) => (
+              <label
+                key={item.id}
+                className="flex items-center gap-2.5 rounded-lg border border-border/50 px-3 py-2 cursor-pointer hover:bg-muted/50 transition-colors"
+              >
+                <input
+                  type="checkbox"
+                  checked={checkedIds.has(item.id)}
+                  onChange={() => {
+                    setCheckedIds((prev) => {
+                      const next = new Set(prev);
+                      if (next.has(item.id)) next.delete(item.id);
+                      else next.add(item.id);
+                      return next;
+                    });
+                  }}
+                  className="size-4 rounded border-border accent-primary"
+                />
+                <span className="text-sm">{item.label}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Comment field */}
       <div className="w-full max-w-sm">

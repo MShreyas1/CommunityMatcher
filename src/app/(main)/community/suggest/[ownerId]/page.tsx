@@ -44,6 +44,7 @@ export default async function SuggestPage({ params }: SuggestPageProps) {
   }
 
   const profiles = result.profiles ?? [];
+  const checklistItems = result.checklistItems ?? [];
 
   return (
     <div className="mx-auto max-w-md py-8">
@@ -53,7 +54,7 @@ export default async function SuggestPage({ params }: SuggestPageProps) {
       <p className="text-center text-muted-foreground text-sm mb-8">
         for {owner.name ?? "your friend"}
       </p>
-      <SuggestStack profiles={profiles} ownerId={ownerId} />
+      <SuggestStack profiles={profiles} ownerId={ownerId} checklistItems={checklistItems} />
     </div>
   );
 }

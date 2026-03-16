@@ -7,6 +7,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Users, Eye, UserPlus as UserPlusIcon } from "lucide-react";
 import { InviteForm } from "./invite-form";
 import { PendingInvitations } from "./pending-invitations";
+import { ChecklistManager } from "./checklist-manager";
 
 export default async function CommunityPage() {
   const result = await getCommunityMembers();
@@ -26,6 +27,7 @@ export default async function CommunityPage() {
 
   const members = result.members ?? [];
   const vettingFor = result.vettingFor ?? [];
+  const checklistItems = result.checklistItems ?? [];
 
   const pendingInvitations = vettingFor.filter(
     (v: { status: string }) => v.status === "PENDING"
@@ -43,6 +45,9 @@ export default async function CommunityPage() {
 
       {/* Invite Form — only for owners */}
       <InviteForm />
+
+      {/* Checklist — owner defines qualities for vetters to check */}
+      <ChecklistManager items={checklistItems} />
 
       {/* Pending invitations the user received as a vetter */}
       {pendingInvitations.length > 0 && (
