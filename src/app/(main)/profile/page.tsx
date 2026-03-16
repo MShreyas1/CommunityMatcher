@@ -13,7 +13,9 @@ import {
   Heart,
   Target,
   Ruler,
+  ScrollText,
 } from "lucide-react";
+import { getPresetById } from "@/lib/detail-presets";
 
 function calculateAge(dateOfBirth: Date): number {
   const today = new Date();
@@ -166,6 +168,31 @@ export default async function ProfilePage() {
           )}
         </div>
       </div>
+
+      {/* Detail Preset Answers */}
+      {profile.detailPreset && profile.detailAnswers && (() => {
+        const preset = getPresetById(profile.detailPreset);
+        const answers = profile.detailAnswers as Record<string, string>;
+        if (!preset) return null;
+        const filledFields = preset.fields.filter((f) => answers[f.key]);
+        if (filledFields.length === 0) return null;
+        return (
+          <div className="rounded-2xl border border-border/30 bg-card p-6 card-shadow space-y-4">
+            <h3 className="text-lg font-semibold tracking-tight flex items-center gap-2">
+              <ScrollText className="size-5 text-primary" />
+              {preset.name} Details
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {filledFields.map((field) => (
+                <div key={field.key} className="text-sm">
+                  <span className="text-muted-foreground">{field.label}:</span>{" "}
+                  <span className="font-medium">{answers[field.key]}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Photos grid */}
       {profile.photos.length > 1 && (

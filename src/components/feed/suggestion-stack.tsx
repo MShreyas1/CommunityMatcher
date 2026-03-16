@@ -30,6 +30,8 @@ interface SuggestionProfile {
     gender: string;
     location: string | null;
     occupation: string | null;
+    detailPreset: string | null;
+    detailAnswers: Record<string, string> | null;
     photos: { id: string; url: string; isPrimary: boolean; order: number }[];
   } | null;
 }

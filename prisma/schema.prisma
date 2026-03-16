@@ -91,6 +91,10 @@ model Profile {
   location    String?
   occupation  String?
 
+  // Detail Preset (e.g. "indian")
+  detailPreset  String?
+  detailAnswers Json?
+
   // Dating Preferences
   lookingFor       String?  // e.g. "men", "women", "everyone"
   ageMin           Int      @default(18)

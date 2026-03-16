@@ -9,20 +9,22 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { ImagePlus, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { createProfile, updateProfile } from "@/actions/profile";
+import { PhotoUpload } from "@/components/photo-upload";
+import { DETAIL_PRESETS, getPresetById } from "@/lib/detail-presets";
 
 const profileFormSchema = z.object({
-  displayName: z.string().min(1, "Display name is required"),
-  bio: z.string().optional(),
+  displayName: z.string().min(1, "Display name is required").max(50),
+  bio: z.string().max(500).optional(),
   dateOfBirth: z.string().min(1, "Date of birth is required"),
   gender: z.string().min(1, "Gender is required"),
-  location: z.string().optional(),
-  occupation: z.string().optional(),
+  location: z.string().max(100).optional(),
+  occupation: z.string().max(100).optional(),
   lookingFor: z.string().optional(),
   ageMin: z.coerce.number().min(18).max(99).optional(),
   ageMax: z.coerce.number().min(18).max(99).optional(),
-  maxDistance: z.coerce.number().min(1).optional(),
+  maxDistance: z.coerce.number().min(1).max(500).optional(),
   relationshipGoal: z.string().optional(),
 });
 
@@ -33,6 +35,11 @@ export default function ProfileEditPage() {
   const [isPending, startTransition] = useTransition();
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [photos, setPhotos] = useState<
+    { id: string; url: string; key: string; order: number; isPrimary: boolean }[]
+  >([]);
+  const [selectedPreset, setSelectedPreset] = useState("");
+  const [detailAnswers, setDetailAnswers] = useState<Record<string, string>>({});
 
   const {
     register,
@@ -64,6 +71,15 @@ export default function ProfileEditPage() {
           const data = await res.json();
           if (data.profile) {
             setIsEditing(true);
+            if (data.profile.detailPreset) {
+              setSelectedPreset(data.profile.detailPreset);
+            }
+            if (data.profile.detailAnswers) {
+              setDetailAnswers(data.profile.detailAnswers);
+            }
+            if (data.profile.photos) {
+              setPhotos(data.profile.photos);
+            }
             reset({
               displayName: data.profile.displayName ?? "",
               bio: data.profile.bio ?? "",
@@ -100,6 +116,11 @@ export default function ProfileEditPage() {
           formData.append(key, String(value));
         }
       });
+
+      formData.set("detailPreset", selectedPreset);
+      if (selectedPreset && Object.keys(detailAnswers).length > 0) {
+        formData.set("detailAnswers", JSON.stringify(detailAnswers));
+      }
 
       const result = isEditing
         ? await updateProfile(formData)
@@ -151,6 +172,7 @@ export default function ProfileEditPage() {
             <Input
               id="displayName"
               placeholder="Your display name"
+              maxLength={50}
               className={inputClassName}
               {...register("displayName")}
               aria-invalid={!!errors.displayName}
@@ -169,6 +191,7 @@ export default function ProfileEditPage() {
             <Textarea
               id="bio"
               placeholder="Tell people about yourself..."
+              maxLength={500}
               className="rounded-xl bg-muted/30 border-border/50 focus:bg-background transition-colors duration-200 min-h-[100px]"
               {...register("bio")}
             />
@@ -222,6 +245,7 @@ export default function ProfileEditPage() {
             <Input
               id="location"
               placeholder="City, State"
+              maxLength={100}
               className={inputClassName}
               {...register("location")}
             />
@@ -234,6 +258,7 @@ export default function ProfileEditPage() {
             <Input
               id="occupation"
               placeholder="What do you do?"
+              maxLength={100}
               className={inputClassName}
               {...register("occupation")}
             />
@@ -321,22 +346,100 @@ export default function ProfileEditPage() {
           </div>
         </div>
 
+        {/* Detail Preset */}
+        <div className="rounded-2xl border border-border/30 bg-card p-6 card-shadow space-y-5">
+          <h2 className="text-lg font-semibold tracking-tight">Details</h2>
+          <p className="text-xs text-muted-foreground">
+            Select a cultural preset to add more details to your profile. This is optional.
+          </p>
+
+          <div className="space-y-2">
+            <label htmlFor="detailPreset" className="text-sm font-medium">
+              Preset
+            </label>
+            <select
+              id="detailPreset"
+              value={selectedPreset}
+              onChange={(e) => {
+                setSelectedPreset(e.target.value);
+                if (!e.target.value) setDetailAnswers({});
+              }}
+              className={selectClassName}
+            >
+              <option value="">None</option>
+              {DETAIL_PRESETS.map((preset) => (
+                <option key={preset.id} value={preset.id}>
+                  {preset.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {selectedPreset && (() => {
+            const preset = getPresetById(selectedPreset);
+            if (!preset) return null;
+            return (
+              <div className="space-y-4 pt-2">
+                {preset.fields.map((field) => (
+                  <div key={field.key} className="space-y-2">
+                    <label htmlFor={`detail-${field.key}`} className="text-sm font-medium">
+                      {field.label}
+                    </label>
+                    {field.type === "select" ? (
+                      <select
+                        id={`detail-${field.key}`}
+                        value={detailAnswers[field.key] ?? ""}
+                        onChange={(e) =>
+                          setDetailAnswers((prev) => ({
+                            ...prev,
+                            [field.key]: e.target.value,
+                          }))
+                        }
+                        className={selectClassName}
+                      >
+                        <option value="">Select...</option>
+                        {field.options?.map((opt) => (
+                          <option key={opt} value={opt}>
+                            {opt}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <Input
+                        id={`detail-${field.key}`}
+                        placeholder={field.placeholder}
+                        value={detailAnswers[field.key] ?? ""}
+                        onChange={(e) =>
+                          setDetailAnswers((prev) => ({
+                            ...prev,
+                            [field.key]: e.target.value,
+                          }))
+                        }
+                        className={inputClassName}
+                      />
+                    )}
+                  </div>
+                ))}
+              </div>
+            );
+          })()}
+        </div>
+
         {/* Photos */}
         <div className="rounded-2xl border border-border/30 bg-card p-6 card-shadow space-y-4">
           <h2 className="text-lg font-semibold tracking-tight">Photos</h2>
-          <div className="flex items-center justify-center rounded-2xl border-2 border-dashed border-border/50 p-10 bg-muted/20 transition-colors duration-200 hover:bg-muted/30">
-            <div className="text-center">
-              <div className="mx-auto flex size-12 items-center justify-center rounded-xl bg-primary/10 border border-primary/15 mb-3">
-                <ImagePlus className="size-6 text-primary" />
-              </div>
-              <p className="text-sm font-medium text-muted-foreground">
-                Photo upload coming soon
-              </p>
-              <p className="text-xs text-muted-foreground/70 mt-1">
-                UploadThing integration requires API keys
-              </p>
-            </div>
-          </div>
+          <PhotoUpload
+            photos={photos}
+            onPhotosChange={async () => {
+              const res = await fetch("/api/profile");
+              if (res.ok) {
+                const data = await res.json();
+                if (data.profile?.photos) {
+                  setPhotos(data.profile.photos);
+                }
+              }
+            }}
+          />
         </div>
 
         <Button

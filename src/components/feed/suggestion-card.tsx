@@ -1,7 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { MapPin, Briefcase, Shield, Check, X, Minus, ClipboardCheck } from "lucide-react";
+import { MapPin, Briefcase, Shield, Check, X, Minus, ClipboardCheck, ScrollText } from "lucide-react";
+import { getPresetById } from "@/lib/detail-presets";
 import { Badge } from "@/components/ui/badge";
 import { CommunityScoreBadge } from "./community-score-badge";
 
@@ -36,6 +37,8 @@ interface SuggestionProfile {
     gender: string;
     location: string | null;
     occupation: string | null;
+    detailPreset: string | null;
+    detailAnswers: Record<string, string> | null;
     photos: { id: string; url: string; isPrimary: boolean; order: number }[];
   } | null;
 }
@@ -125,6 +128,31 @@ export function SuggestionCard({ suggestion }: SuggestionCardProps) {
           </p>
         </div>
       )}
+
+      {/* Detail Preset Answers */}
+      {profile.detailPreset && profile.detailAnswers && (() => {
+        const preset = getPresetById(profile.detailPreset);
+        if (!preset) return null;
+        const answers = profile.detailAnswers;
+        const filledFields = preset.fields.filter((f) => answers[f.key]);
+        if (filledFields.length === 0) return null;
+        return (
+          <div className="px-5 py-3 border-t border-border/30">
+            <div className="flex items-center gap-1.5 mb-2">
+              <ScrollText className="size-3.5 text-primary" />
+              <h3 className="text-xs font-semibold text-muted-foreground">{preset.name} Details</h3>
+            </div>
+            <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+              {filledFields.map((field) => (
+                <div key={field.key} className="text-xs">
+                  <span className="text-muted-foreground">{field.label}:</span>{" "}
+                  <span className="font-medium">{answers[field.key]}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Community Endorsement Section */}
       {suggestion.votes.length > 0 && (
