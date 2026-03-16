@@ -1,11 +1,22 @@
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 const fromEmail =
   process.env.RESEND_FROM_EMAIL || "SamuDate <noreply@samudate.com>";
 
+function getResend() {
+  if (!process.env.RESEND_API_KEY) {
+    return null;
+  }
+  return new Resend(process.env.RESEND_API_KEY);
+}
+
 export async function sendVerificationEmail(email: string, token: string) {
+  const resend = getResend();
+  if (!resend) {
+    console.warn("RESEND_API_KEY not set — skipping verification email");
+    return;
+  }
+
   const verifyUrl = `${process.env.NEXT_PUBLIC_APP_URL}/verify-email?token=${token}`;
 
   await resend.emails.send({
