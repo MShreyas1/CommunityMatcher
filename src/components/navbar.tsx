@@ -10,7 +10,10 @@ import {
   Users,
   UserCircle,
   LogOut,
+  Sun,
+  Moon,
 } from "lucide-react";
+import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
@@ -26,6 +29,7 @@ const navLinks = [
 export function Navbar() {
   const pathname = usePathname();
   const { data: session } = useSession();
+  const { theme, setTheme } = useTheme();
 
   const userInitials = session?.user?.name
     ? session.user.name
@@ -39,7 +43,7 @@ export function Navbar() {
   return (
     <>
       {/* Desktop top bar */}
-      <header className="hidden md:flex fixed top-0 left-0 right-0 z-50 h-16 items-center glass border-b border-border/30 px-8">
+      <header className="hidden md:flex fixed top-0 left-0 right-0 z-50 h-16 items-center border-b border-primary/10 px-8 bg-[oklch(0.99_0.004_70/88%)] backdrop-blur-xl backdrop-saturate-120 shadow-[0_1px_8px_oklch(0.40_0.02_50/6%),0_4px_16px_oklch(0.40_0.02_50/4%)]">
         <Link
           href="/feed"
           className="mr-10 flex items-center gap-2 text-lg font-bold tracking-tight"
@@ -52,7 +56,7 @@ export function Navbar() {
           </span>
         </Link>
 
-        <nav className="flex items-center gap-1">
+        <nav className="flex items-center gap-1.5">
           {navLinks.map(({ href, label, icon: Icon }) => {
             const isActive =
               pathname === href || pathname.startsWith(href + "/");
@@ -62,10 +66,10 @@ export function Navbar() {
                   variant="ghost"
                   size="sm"
                   className={cn(
-                    "gap-2 rounded-xl px-4 font-medium transition-all duration-200",
+                    "gap-2 rounded-xl px-4 py-2 font-medium transition-all duration-200",
                     isActive
-                      ? "bg-primary/15 text-primary font-semibold border border-primary/20 glow-sm"
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                      ? "bg-primary/10 text-primary font-semibold border border-primary/20 shadow-[0_0_10px_oklch(0.65_0.19_25/12%)]"
+                      : "text-muted-foreground border border-transparent hover:text-foreground hover:bg-primary/5 hover:border-border/60"
                   )}
                 >
                   <Icon className="size-4" />
@@ -76,7 +80,17 @@ export function Navbar() {
           })}
         </nav>
 
-        <div className="ml-auto flex items-center gap-3">
+        <div className="ml-auto flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            aria-label="Toggle theme"
+            className="rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+          >
+            <Sun className="size-4 rotate-0 scale-100 transition-transform dark:-rotate-90 dark:scale-0" />
+            <Moon className="absolute size-4 rotate-90 scale-0 transition-transform dark:rotate-0 dark:scale-100" />
+          </Button>
           <Avatar size="sm" className="ring-2 ring-primary/20">
             {session?.user?.image && (
               <AvatarImage
@@ -101,7 +115,7 @@ export function Navbar() {
       </header>
 
       {/* Mobile bottom tab bar */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 flex md:hidden h-[4.5rem] items-center justify-around glass border-t border-border/30 px-2 pb-safe">
+      <nav className="fixed bottom-0 left-0 right-0 z-50 flex md:hidden h-[4.5rem] items-center justify-around border-t border-primary/10 px-2 pb-safe bg-[oklch(0.99_0.004_70/90%)] backdrop-blur-xl backdrop-saturate-120 shadow-[0_-1px_8px_oklch(0.40_0.02_50/6%),0_-4px_16px_oklch(0.40_0.02_50/4%)]">
         {navLinks.map(({ href, label, icon: Icon }) => {
           const isActive =
             pathname === href || pathname.startsWith(href + "/");
@@ -119,7 +133,7 @@ export function Navbar() {
               <div
                 className={cn(
                   "flex items-center justify-center rounded-xl p-1.5 transition-all duration-200",
-                  isActive && "bg-primary/15 border border-primary/20 glow-sm"
+                  isActive && "bg-primary/10 border border-primary/20 shadow-[0_0_8px_oklch(0.65_0.19_25/15%)]"
                 )}
               >
                 <Icon className="size-5" />

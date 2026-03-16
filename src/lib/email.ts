@@ -33,7 +33,7 @@ export async function sendVerificationEmail(email: string, token: string) {
         </p>
         <a
           href="${verifyUrl}"
-          style="display: inline-block; background: #8b5cf6; color: white; padding: 12px 32px; border-radius: 8px; text-decoration: none; font-weight: 600;"
+          style="display: inline-block; background: #e07040; color: white; padding: 12px 32px; border-radius: 8px; text-decoration: none; font-weight: 600;"
         >
           Verify Email
         </a>
