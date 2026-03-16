@@ -20,10 +20,16 @@ import {
 
 const registerSchema = z
   .object({
-    name: z.string().min(1, "Name is required"),
-    email: z.string().email("Invalid email address"),
-    password: z.string().min(8, "Password must be at least 8 characters"),
+    name: z.string().min(1, "Name is required").max(100),
+    email: z.string().email("Invalid email address").max(255),
+    password: z
+      .string()
+      .min(8, "Password must be at least 8 characters")
+      .max(128),
     confirmPassword: z.string().min(1, "Please confirm your password"),
+    agreedToTerms: z.literal(true, {
+      message: "You must agree to the Terms of Service and Privacy Policy",
+    }),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords do not match",
@@ -81,7 +87,7 @@ export default function RegisterPage() {
         </div>
         <h1 className="text-2xl font-bold tracking-tight">Create your account</h1>
         <p className="text-sm text-muted-foreground mt-1.5">
-          Join CommunityMatcher and start connecting
+          Join SamuDate and start connecting
         </p>
       </div>
       <CardContent className="px-8 pt-6 pb-4">
@@ -94,6 +100,7 @@ export default function RegisterPage() {
               id="name"
               type="text"
               placeholder="Your name"
+              maxLength={100}
               className="h-11 rounded-xl bg-muted/50 border-border/50 focus:border-primary/40 focus:bg-background transition-all duration-200"
               {...register("name")}
             />
@@ -111,6 +118,7 @@ export default function RegisterPage() {
               id="email"
               type="email"
               placeholder="you@example.com"
+              maxLength={255}
               className="h-11 rounded-xl bg-muted/50 border-border/50 focus:border-primary/40 focus:bg-background transition-all duration-200"
               {...register("email")}
             />
@@ -128,6 +136,7 @@ export default function RegisterPage() {
               id="password"
               type="password"
               placeholder="At least 8 characters"
+              maxLength={128}
               className="h-11 rounded-xl bg-muted/50 border-border/50 focus:border-primary/40 focus:bg-background transition-all duration-200"
               {...register("password")}
             />
@@ -145,12 +154,45 @@ export default function RegisterPage() {
               id="confirmPassword"
               type="password"
               placeholder="Confirm your password"
+              maxLength={128}
               className="h-11 rounded-xl bg-muted/50 border-border/50 focus:border-primary/40 focus:bg-background transition-all duration-200"
               {...register("confirmPassword")}
             />
             {errors.confirmPassword && (
               <p className="text-sm text-destructive">
                 {errors.confirmPassword.message}
+              </p>
+            )}
+          </div>
+          <div className="space-y-2">
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                className="mt-1 size-4 rounded border-border/50 accent-primary"
+                {...register("agreedToTerms")}
+              />
+              <span className="text-sm text-muted-foreground leading-relaxed">
+                I agree to the{" "}
+                <Link
+                  href="/terms"
+                  target="_blank"
+                  className="text-primary hover:underline font-medium"
+                >
+                  Terms of Service
+                </Link>{" "}
+                and{" "}
+                <Link
+                  href="/privacy"
+                  target="_blank"
+                  className="text-primary hover:underline font-medium"
+                >
+                  Privacy Policy
+                </Link>
+              </span>
+            </label>
+            {errors.agreedToTerms && (
+              <p className="text-sm text-destructive">
+                {errors.agreedToTerms.message}
               </p>
             )}
           </div>

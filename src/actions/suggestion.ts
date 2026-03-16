@@ -4,6 +4,7 @@ import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
+import { rateLimit } from "@/lib/rate-limit";
 
 /**
  * Vetter's browse feed — profiles matching the owner's preferences,
@@ -120,7 +121,7 @@ const createSuggestionSchema = z.object({
   ownerId: z.string().min(1),
   suggestedId: z.string().min(1),
   vote: z.enum(["APPROVE", "DENY", "NEUTRAL"]),
-  comment: z.string().optional(),
+  comment: z.string().max(500).optional(),
   checkedItemIds: z.array(z.string()).optional(),
 });
 
@@ -139,6 +140,27 @@ export async function createSuggestion(
   const session = await auth();
   if (!session?.user?.id) {
     return { error: "Not authenticated" };
+  }
+
+  // Email verification check
+  const user = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { emailVerified: true },
+  });
+
+  if (!user?.emailVerified) {
+    return { error: "Please verify your email before creating suggestions." };
+  }
+
+  // Rate limit: 10 per minute
+  const rateLimitResult = rateLimit({
+    key: `create-suggestion:${session.user.id}`,
+    limit: 10,
+    windowMs: 60 * 1000,
+  });
+
+  if (!rateLimitResult.success) {
+    return { error: "Too many requests. Please try again shortly." };
   }
 
   const parsed = createSuggestionSchema.safeParse({

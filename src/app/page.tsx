@@ -89,6 +89,28 @@ export default function LandingPage() {
           </div>
         ))}
       </section>
+      {/* Footer */}
+      <footer className="border-t border-border/20 py-8 px-6 relative z-10">
+        <div className="mx-auto max-w-5xl flex flex-col sm:flex-row items-center justify-between gap-4">
+          <p className="text-sm text-muted-foreground">
+            &copy; {new Date().getFullYear()} SamuDate. All rights reserved.
+          </p>
+          <div className="flex gap-6">
+            <Link
+              href="/terms"
+              className="text-sm text-muted-foreground hover:text-primary transition-colors"
+            >
+              Terms of Service
+            </Link>
+            <Link
+              href="/privacy"
+              className="text-sm text-muted-foreground hover:text-primary transition-colors"
+            >
+              Privacy Policy
+            </Link>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

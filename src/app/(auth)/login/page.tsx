@@ -69,7 +69,7 @@ export default function LoginPage() {
         </div>
         <h1 className="text-2xl font-bold tracking-tight">Welcome back</h1>
         <p className="text-sm text-muted-foreground mt-1.5">
-          Sign in to your CommunityMatcher account
+          Sign in to your SamuDate account
         </p>
       </div>
       <CardContent className="px-8 pt-6 pb-4">
@@ -82,6 +82,7 @@ export default function LoginPage() {
               id="email"
               type="email"
               placeholder="you@example.com"
+              maxLength={255}
               className="h-11 rounded-xl bg-muted/50 border-border/50 focus:border-primary/40 focus:bg-background transition-all duration-200 focus:glow-sm"
               {...register("email")}
             />
@@ -99,6 +100,7 @@ export default function LoginPage() {
               id="password"
               type="password"
               placeholder="Enter your password"
+              maxLength={128}
               className="h-11 rounded-xl bg-muted/50 border-border/50 focus:border-primary/40 focus:bg-background transition-all duration-200 focus:glow-sm"
               {...register("password")}
             />

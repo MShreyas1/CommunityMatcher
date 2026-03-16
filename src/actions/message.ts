@@ -4,6 +4,7 @@ import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
+import { rateLimit } from "@/lib/rate-limit";
 
 const sendMessageSchema = z.object({
   conversationId: z.string().min(1),
@@ -14,6 +15,27 @@ export async function sendMessage(conversationId: string, content: string) {
   const session = await auth();
   if (!session?.user?.id) {
     return { error: "Not authenticated" };
+  }
+
+  // Email verification check
+  const user = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { emailVerified: true },
+  });
+
+  if (!user?.emailVerified) {
+    return { error: "Please verify your email before sending messages." };
+  }
+
+  // Rate limit: 20 messages per minute
+  const rateLimitResult = rateLimit({
+    key: `send-message:${session.user.id}`,
+    limit: 20,
+    windowMs: 60 * 1000,
+  });
+
+  if (!rateLimitResult.success) {
+    return { error: "You're sending messages too quickly. Please slow down." };
   }
 
   const parsed = sendMessageSchema.safeParse({ conversationId, content });
