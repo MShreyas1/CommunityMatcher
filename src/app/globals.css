@@ -319,6 +319,19 @@
     pointer-events: none;
     z-index: 0;
   }
+
+  /* Swipe card animations */
+  .animate-swipe-right {
+    animation: swipeRight 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
+
+  .animate-swipe-left {
+    animation: swipeLeft 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
+
+  .animate-card-enter {
+    animation: cardEnter 0.35s cubic-bezier(0, 0, 0.2, 1) forwards;
+  }
 }
 
 @keyframes borderRotate {
@@ -345,7 +358,6 @@
   100% { background-position: 200% 0; }
 }
 
-/* Swipe card animations */
 @keyframes swipeRight {
   0% {
     transform: translateX(0) rotate(0deg);
@@ -377,16 +389,4 @@
     transform: scale(1) translateY(0);
     opacity: 1;
   }
-}
-
-.animate-swipe-right {
-  animation: swipeRight 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-}
-
-.animate-swipe-left {
-  animation: swipeLeft 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-}
-
-.animate-card-enter {
-  animation: cardEnter 0.35s cubic-bezier(0, 0, 0.2, 1) forwards;
 }
