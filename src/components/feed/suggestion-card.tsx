@@ -38,7 +38,7 @@ interface SuggestionProfile {
     location: string | null;
     occupation: string | null;
     detailPreset: string | null;
-    detailAnswers: Record<string, string> | null;
+    detailAnswers: unknown;
     photos: { id: string; url: string; isPrimary: boolean; order: number }[];
   } | null;
 }
@@ -130,10 +130,10 @@ export function SuggestionCard({ suggestion }: SuggestionCardProps) {
       )}
 
       {/* Detail Preset Answers */}
-      {profile.detailPreset && profile.detailAnswers && (() => {
+      {profile.detailPreset && profile.detailAnswers != null && (() => {
         const preset = getPresetById(profile.detailPreset);
         if (!preset) return null;
-        const answers = profile.detailAnswers;
+        const answers = profile.detailAnswers as Record<string, string>;
         const filledFields = preset.fields.filter((f) => answers[f.key]);
         if (filledFields.length === 0) return null;
         return (

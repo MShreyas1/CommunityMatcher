@@ -31,7 +31,7 @@ interface SuggestionProfile {
     location: string | null;
     occupation: string | null;
     detailPreset: string | null;
-    detailAnswers: Record<string, string> | null;
+    detailAnswers: unknown;
     photos: { id: string; url: string; isPrimary: boolean; order: number }[];
   } | null;
 }
